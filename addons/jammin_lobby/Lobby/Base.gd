@@ -6,47 +6,6 @@ static var debug := OS.is_debug_build()
 func wait(time: float):
 	return Lobby.get_tree().create_timer(time).timeout
 
-# Serialization utilities
-func to_dict(obj: Object, props: Array[String]) -> Dictionary:
-	var dict = {}
-	for p in props: dict[p] = obj[p]
-	return dict
-
-# File utilities
-func save_json(path: String, data: Dictionary) -> Error:
-	var serialized = JSON.stringify(data)
-	var file = FileAccess.open(path, FileAccess.WRITE)
-	if not file: return FileAccess.get_open_error()
-	file.store_string(serialized)
-	file.close()
-	return OK
-
-func load_json(path: String) -> Dictionary:
-	var file = FileAccess.open(path, FileAccess.READ)
-	if not file: return {}
-	var serialized = file.get_as_text()
-	file.close()
-	var json := JSON.new()
-	var error = json.parse(serialized)
-	if error != OK:
-		push_error("JamminBase: failed to parse JSON: ", error)
-		return {}
-	return json.data
-
-func file_exists(path: String) -> bool:
-	return FileAccess.file_exists(path)
-
-func copy_file(src: String, dst: String) -> Error:
-	var file_exists = FileAccess.file_exists(src)
-	if not file_exists: return FileAccess.get_open_error()
-	var dir = DirAccess.open(src.get_base_dir())
-	dir.copy(src, dst)
-	return OK
-
-# Connects a callback to a signal if it's not already connected
-func cs(o: Object, s: String, c: Callable) -> void:
-	if not o[s].is_connected(c): o[s].connect(c)
-
 func debounce_single_timer(c: Callable):
 	for t in get_children(): if t is Timer and t.is_connected("timeout", c): t.stop(); t.start(); return t
 	return null
@@ -66,6 +25,10 @@ func debounce(ms: float, c: Callable) -> Signal:
 	timer.timeout.connect(func(): timer.queue_free())
 	timer.start()
 	return timer.timeout
+
+# Connects a callback to a signal if it's not already connected
+func cs(o: Object, s: String, c: Callable) -> void:
+	if not o[s].is_connected(c): o[s].connect(c)
 
 var _options: JamminOptions = null
 func options_get(settings: Dictionary) -> JamminOptions:
@@ -131,7 +94,6 @@ func lm(m1: Variant, m2: Variant = "", m3: Variant = "", m4: Variant = "", m5: V
 # Game.every(20, fn) # will every the function every 20 frames
 func every(frames: int, fn: Callable, offset: int = 0, debug_label: StringName = &""):
 	if frames == 0: return # never
-	if Game.pauser.is_paused: return # don't run if paused
 
 	if (Engine.get_physics_frames() + offset) % frames == 0:
 		if debug_label != &"":
