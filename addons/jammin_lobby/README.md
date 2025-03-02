@@ -29,7 +29,6 @@ Lobby.setup({
     "game_port": 1234,
     "broadcast_port": 1235,
     "response_port": 1236,
-    "player_script": preload("res://Scripts/MyPlayer.gd"),
     "autosave": true,
     "save_slot": 1,
     "options_save_file": "user://options.json"
@@ -54,33 +53,54 @@ Lobby.send_system_chat("System message")
 
 ### Players
 
-Players are managed through a custom player class that extends `JamminPlayer`. The plugin automatically handles player spawning, despawning, and state synchronization.
+Players (also known as "peers") are managed through the `Lobby.players` Dictionary.
 
 ```gdscript
-class_name MyPlayer extends JamminPlayer
+# Get the local player
+Lobby.me
 
-var color: Color = Color.WHITE
-var character: String = "fighter"
+# Get all players
+Lobby.players
 
-func _init():
-    # Properties to sync across the network
-    sync_prop("color")
-    sync_prop("character")
+# Get a player by ID
+Lobby.players[pid]
+```
 
-    # Properties to save locally
-    save_props(["color", "character"])
+Example Lobby.players data:
 
-func on_me_created():
-    # Called when local player is created
-    pass
+```gdscript
+{
+    # host is always pid 1
+    1: {
+        "pid": 1,
+        "name": "Jammin",
+        "color": Color.WHITE,
+        "ready": false
+    },
+    # other players have random pids assigned by Godot's multiplayer system
+    10482058: {
+        "pid": 10482058,
+        "name": "Deadslap",
+        "color": Color.BLACK,
+        "ready": true
+    }
+}
+```
 
-func on_joined_lobby():
-    # Called when player joins a lobby
-    pass
+JamminLobby will automatically synchronize player data across the network.
 
-func on_left_lobby():
-    # Called when player leaves a lobby
-    pass
+To update the current player's data, use `Lobby.update_player(data)`. It will be merged with the existing player data and broadcast to all players.
+
+```gdscript
+# Update player data
+Lobby.update_player({ "ready": false })
+```
+
+To update a different player's data, use `Lobby.update_player_id(pid, data)`.
+
+```gdscript
+# Update another player's data
+Lobby.update_player_id(10482058, { "ready": false })
 ```
 
 ### Options Management

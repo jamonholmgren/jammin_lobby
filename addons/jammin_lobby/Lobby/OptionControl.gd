@@ -1,5 +1,6 @@
-# Lets you bind options to controls, like checkboxes, sliders, etc.
 class_name JamminOptionControl extends Control
+
+# Attach this script to a control in your menu UI to automatically save its value to the Lobby options
 
 signal value_changed(key: String, value: Variant)
 

@@ -21,9 +21,10 @@ static func get_local_ipv4_addresses() -> Array[String]:
 
 static func get_external_ip() -> Array:
 	var http = HTTPRequest.new()
-	add_child(http)
+	Engine.get_main_loop().root.add_child(http)
 	http.request("https://api.ipify.org")
 	var result = await http.request_completed
+	Engine.get_main_loop().root.remove_child(http)
 	http.queue_free()
 	var wan_ip = result[3].get_string_from_utf8()
 	if not is_good_address(wan_ip): return [ERR_CANT_RESOLVE, ""]
