@@ -13,3 +13,11 @@ config_version=5
 config/name="jammin_lobby"
 config/features=PackedStringArray("4.3", "Forward Plus")
 config/icon="res://icon.svg"
+
+[autoload]
+
+Lobby="*res://addons/jammin_lobby/Lobby/Lobby.gd"
+
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/jammin_lobby/plugin.cfg")
