@@ -5,6 +5,7 @@ func _ready() -> void:
 	%CreateLobbyButton.pressed.connect(_on_create_lobby_pressed)
 	%LeaveLobbyButton.pressed.connect(_on_leave_lobby_pressed)
 	%Username.text_changed.connect(_on_username_changed)
+	%RefreshButton.pressed.connect(_on_refresh_pressed)
 
 	Lobby.hosting_started.connect(_on_hosting_started)
 	Lobby.hosting_stopped.connect(_on_hosting_stopped)
@@ -17,6 +18,7 @@ func _ready() -> void:
 	Lobby.discovery_server_started.connect(_on_discovery_server_started)
 	Lobby.discovery_server_failed.connect(_on_discovery_server_failed)
 	Lobby.discovery_server_stopped.connect(_on_discovery_server_stopped)
+	Lobby.lobbies_refreshed.connect(_on_lobbies_refreshed)
 	update_lobby_ui()
 
 func _on_create_lobby_pressed() -> void:
@@ -33,6 +35,17 @@ func _on_username_changed() -> void:
 	if new_username.length() <= 0: return
 	Lobby.update_me({ username = new_username })
 	Lobby.sync_players()
+
+func _on_refresh_pressed() -> void:
+	Lobby.find_lobbies()
+
+func _on_lobbies_refreshed(lobbies: Dictionary, error: String = "") -> void:
+	if error:
+		%RefreshButton.text = "Error: " + error
+		%RefreshButton.disabled = false
+	else:
+		%RefreshButton.text = "Refresh"
+		%RefreshButton.disabled = false
 
 func _on_hosting_stopped(_msg: String = "") -> void:
 	update_lobby_ui()

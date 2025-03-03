@@ -26,6 +26,7 @@ signal hosting_stopped(message: String)
 signal discovery_server_started()
 signal discovery_server_failed(error: int)
 signal discovery_server_stopped()
+signal lobbies_refreshed(lobbies: Dictionary)
 
 # Signals for the chat messages
 signal chat_messages_updated()
@@ -139,7 +140,6 @@ func configure(settings: Dictionary):
 	if settings.has("broadcast_port"): config.broadcast_port = settings.broadcast_port
 	if settings.has("response_port"): config.response_port = settings.response_port
 	if settings.has("max_players"): config.max_players = settings.max_players
-	if settings.has("refresh_packet"): config.refresh_packet = settings.refresh_packet
 	if settings.has("connection_timeout"): config.connection_timeout = settings.connection_timeout
 	if settings.has("player_script"): config.player_script = settings.player_script
 	if settings.has("player_scene"): config.player_scene = settings.player_scene
@@ -258,7 +258,7 @@ func check_for_clients_discovery() -> void:
 		"ip": discovery_server.get_packet_ip(),
 		"port": discovery_server.get_packet_port()
 	}
-	if ping.data != config.refresh_packet: return
+	if ping.data != refresh_packet(): return
 
 	var response = {
 		"game_name": config.game_name,
@@ -317,8 +317,11 @@ func sync_all_players(updated_players: Dictionary):
 			players.erase(pid)
 			player_left_lobby.emit(p)
 
+func refresh_packet() -> String:
+	return config.lobby_name + &"-LOOKING-FOR-LOBBY"
+
 # Refresh the list of local servers
-func find_lobbies(callback: Callable, retry = 0):
+func find_lobbies(callback: Callable = func(_lobbies: Dictionary, _error: String = ""): pass, retry = 0):
 	lm("find_lobbies ", retry)
 	# just in case, close the discovery server if it's already bound
 	if discovery_server.is_bound(): discovery_server.close()
@@ -330,12 +333,14 @@ func find_lobbies(callback: Callable, retry = 0):
 	var error = discovery_server.bind(config.response_port)
 	if error != OK:
 		refreshing = false
-		callback.call([], "Error binding client discovery broadcast: " + str(error))
+		var error_msg = "Error binding client discovery broadcast: " + str(error)
+		callback.call([], error_msg)
+		lobbies_refreshed.emit([], error_msg)
 		return
 	
 	discovery_server.set_broadcast_enabled(true)
 	discovery_server.set_dest_address("255.255.255.255", config.broadcast_port)
-	discovery_server.put_packet(config.refresh_packet.to_utf8_buffer())
+	discovery_server.put_packet(refresh_packet().to_utf8_buffer())
 	# lm("Sent refresh packet")
 
 	await wait(0.2 * (retry + 1))
@@ -346,7 +351,7 @@ func find_lobbies(callback: Callable, retry = 0):
 			"ip": discovery_server.get_packet_ip(),
 			"port": discovery_server.get_packet_port()
 		}
-		if ping.ip == "" or ping.data == config.refresh_packet: continue
+		if ping.ip == "" or ping.data == refresh_packet(): continue
 
 		var server_info_parsed = JSON.parse_string(ping.data)
 
@@ -362,7 +367,8 @@ func find_lobbies(callback: Callable, retry = 0):
 	if found_lobbies.size() <= 0 and retry < 3: # auto-refresh temporarily disabled for testing
 		find_lobbies(callback, retry + 1)
 	else:
-		callback.call(found_lobbies)
+		callback.call(found_lobbies, "")
+		lobbies_refreshed.emit(found_lobbies, "")
 
 # Join a server by IP address and port
 func join(lobby: Dictionary) -> void:
@@ -392,6 +398,7 @@ func ask(pid: int, req_name: String, data: Dictionary) -> Variant: return await 
 func broadcast(req_name: String, data: Dictionary = {}) -> void: request.broadcast(req_name, data)
 
 # Chat methods *******************************************************************
+
 func send_chat(message: String):
 	if not online(): return send_system_chat(message)
 	
