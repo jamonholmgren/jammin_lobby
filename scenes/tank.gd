@@ -17,7 +17,7 @@ func _physics_process(delta):
 
 func _unhandled_input(event: InputEvent) -> void:
 	# Check if the menu is visible -- if so, don't accept input
-	# if Main.menu.visible: return
+	if Main.menu.visible: return
 	
 	if event is InputEventMouseMotion:
 		# Check if it's still in the screen or not

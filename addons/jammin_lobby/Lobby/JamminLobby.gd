@@ -19,15 +19,6 @@ signal player_joined_lobby(player: Dictionary)
 signal player_left_lobby(player: Dictionary)
 signal player_updated(player: Dictionary)
 
-# Signals for the host
-signal host_joining_lobby()
-signal host_joined_lobby()
-signal host_left_lobby(reason: String)
-signal host_player_joining_lobby(pid: int) # all we have is a pid, no player yet
-signal host_player_joined_lobby(player: Dictionary)
-signal host_player_left_lobby(player: Dictionary)
-signal host_player_updated(player: Dictionary)
-
 # Signals for the lobby
 signal hosting_started()
 signal hosting_failed(message: String)
@@ -95,11 +86,6 @@ func setup_signals() -> void:
   Lobby.player_joined_lobby.connect(player_joined_lobby.emit)
   Lobby.player_left_lobby.connect(player_left_lobby.emit)
   Lobby.player_updated.connect(player_updated.emit)
-
-  # Signals for the host
-  Lobby.host_joining_lobby.connect(host_joining_lobby.emit)
-  Lobby.host_joined_lobby.connect(host_joined_lobby.emit)
-  Lobby.host_left_lobby.connect(host_left_lobby.emit)
 
   # Signals for the lobby
   Lobby.hosting_started.connect(hosting_started.emit)

@@ -17,11 +17,6 @@ signal player_joined_lobby(player: Dictionary)
 signal player_left_lobby(player: Dictionary)
 signal player_updated(player: Dictionary)
 
-# Signals for the host
-signal host_joining_lobby()
-signal host_joined_lobby()
-signal host_left_lobby(reason: String)
-
 # Signals for the lobby
 signal hosting_started()
 signal hosting_failed(message: String)
@@ -90,6 +85,7 @@ var refreshing := false
 # Lifecycle ***********************************************************************
 
 func _ready() -> void:
+	debug = true
 	setup_multiplayer()
 	setup_request()
 
@@ -173,7 +169,26 @@ func start_server() -> void:
 	if error != OK: return start_server_failed(error)
 	multiplayer.multiplayer_peer = peer
 	# TODO: update the lobby name somehow
-	hosting_started.emit() # manually because there's no built-in signal
+	
+	# manually signal because there's no built-in signal
+	hosting_started.emit()
+	me_joining_lobby.emit()
+	sync_players()
+
+func sync_players():
+	update_player_data.rpc_id(SERVER_ID, me)
+
+@rpc("authority", "reliable", "call_local")
+func update_player_data(player: Dictionary):
+	var pid = sid()
+	player.id = pid
+	if not players.has(pid): players[pid] = DEFAULT_PLAYER_DATA
+	# No change? skip
+	if players[pid].hash() == player.hash(): return
+	# Merge the new data
+	players[pid].merge(player, true)
+	# Sync to all players
+	host_sync_all_players()
 
 func start_server_failed(error: int) -> void:
 	close_game_peer()
@@ -216,7 +231,6 @@ func start_discovery() -> void:
 		return
 	set_process(true) # start listening for pings
 	discovery_server_started.emit()
-	# lm("discovery_server_started.emit")
 
 func stop_discovery():
 	lm("stop_discovery")
@@ -224,7 +238,6 @@ func stop_discovery():
 	set_process(false)
 	discovery_server.close()
 	discovery_server_stopped.emit()
-	# lm("discovery_server_stopped.emit")
 
 func check_for_clients_discovery() -> void:
 	if not discovery_server.is_bound(): return pe("Lobby: Discovery server not bound!")
@@ -260,7 +273,11 @@ func host_sync_all_players():
 @rpc("authority", "reliable")
 func sync_all_players(new_players: Dictionary):
 	if not i_am_host(): return
+
+	# Track the active players so we can remove inactive ones
 	var active_players: Array[int] = []
+	
+	# Process the new players
 	for pid in new_players.values():
 		var new_player: Dictionary = new_players[pid]
 		active_players.append(pid)
@@ -271,7 +288,8 @@ func sync_all_players(new_players: Dictionary):
 		
 		# No change? skip
 		if not is_new and not is_updated: continue
-
+		
+		# Update my data
 		if is_me: me = new_player
 		
 		# someone else
@@ -281,7 +299,15 @@ func sync_all_players(new_players: Dictionary):
 		elif is_updated:
 			player_updated.emit(new_player)
 			if is_me: me_updated.emit(me)
-			
+	
+	# Remove players that are no longer in the lobby
+	for pid in players.keys():
+		if not active_players.has(pid):
+			if is_me: me_left_lobby.emit("Lobby player left")
+			var p = players[pid]
+			players.erase(pid)
+			player_left_lobby.emit(p)
+
 # Refresh the list of local servers
 func find_lobbies(callback: Callable, retry = 0):
 	lm("find_lobbies ", retry)
@@ -337,6 +363,7 @@ func join(lobby: Dictionary) -> void:
 	var error: Error = peer.create_client(lobby.ip, lobby.port)
 	if error != OK: return join_error(error)
 	multiplayer.multiplayer_peer = peer
+	# manually signal because there's no built-in signal
 	me_joining_lobby.emit()
 
 func join_error(error: int) -> void:
@@ -438,39 +465,32 @@ func is_me(p: Dictionary) -> bool: return p and me.id == p.id
 # Signal Handlers ***************************************************************
 
 func _on_connection_succeeded():
+	lm("_on_connection_succeeded")
 	var pid = multiplayer_id()
 	me_joining_lobby.emit()
-	if i_am_host(): host_joining_lobby.emit()
 
 func _on_connection_failed(reason: String = ""):
+	lm("_on_connection_failed: ", reason)
 	me_left_lobby.emit(reason)
-	if i_am_host(): host_left_lobby.emit(reason)
 
 func _on_connection_ended(reason: String = ""):
 	lm("_on_connection_ended: ", reason)
 	# Per: https://github.com/godotengine/godot/issues/77723#issuecomment-1830689802
 	close_game_peer()
 	me_left_lobby.emit(reason)
-	if i_am_host(): host_left_lobby.emit(reason)
 	
 func _on_server_started(): hosting_started.emit()
 func _on_server_failed(message: String): hosting_failed.emit(message)
 
 func _on_remote_peer_connected(pid: int):
-	# TODO -- stuff here needs to be thought through
+	lm("_on_remote_peer_connected: ", pid)
 	if pid == SERVER_ID:
 		# I joined a server
 		me_joining_lobby.emit()
-		if i_am_host(): host_joining_lobby.emit()
 	else:
-		if not i_am_host():
-			push_error("My assumption is wrong; I'm not the host but I got a remote peer online!")
-			lm("!!! My assumption is wrong; I'm not the host but I got a remote peer online!")
-			return
-
-		# Someone else online to my server, is joining_lobby
+		assert(i_am_host(), JamminErrors.REMOTE_PEER_NOT_HOST)
+		# Someone else remote to my server is joining_lobby
 		player_joining_lobby.emit(pid)
-		lm("player_joining_lobby.emit: ", pid)
 
 func _on_remote_peer_disconnected(pid: int, reason: String = ""):
 	lm("_on_remote_peer_disconnected: ", pid, " " + reason)
