@@ -27,32 +27,33 @@ static func update_list(nodes_original: Array[Node], items: Array[Variant], head
 			nodes.append(node)
 			n_nodes += 1
 
-		if arity != 3 and arity != 2: push_error(ER_INVALID_ARITY % ["update_list", arity])
+		assert(arity == 3 or arity == 2, ER_INVALID_ARITY % ["update_list", arity])
 
 		if arity == 3: update_func.call(node, items[i], i)
 		elif arity == 2: update_func.call(node, items[i])
 
 static func update_grid(grid: GridContainer, items: Array[Variant], header: bool, update_func: Callable) -> void:
 	var cols := grid.columns
-	var grid_nodes: Array[Node] = grid.get_children()
-	var hdr := 0 if header else -1
-	var tmpl := 1 if header else 0
-	var n_rows := ceil(grid.get_child_count() / cols)
+	var grid_nodes: Array[Node] = grid.get_children().duplicate()
+
+	# Remove the header nodes from consideration
+	if header: for c in range(cols): grid_nodes.erase(grid_nodes[c])
+
+	var n_rows := ceil(grid_nodes.size() / cols)
 	var n_items := items.size()
 	var arity := update_func.get_argument_count()
 	var template_row: Array[Node] = []
 	
-	if n_rows < (tmpl + 1): push_error(ER_NO_TEMPLATE_ROW % "update_grid"); return
-
-	if arity != 3 and arity != 2: push_error(ER_INVALID_ARITY % ["update_grid", arity])
+	assert(n_rows >= 1, ER_NO_TEMPLATE_ROW % "update_grid")
+	assert(arity == 3 or arity == 2, ER_INVALID_ARITY % ["update_grid", arity])
 
 	for i in range(max(n_rows, n_items)):
 		var item: Variant = items[i] if i < n_items else null
 
 		# Get all the nodes for this row
 		var row_nodes: Array[Node] = []
-		for c in range(0, cols):
-			var o := (i * cols) + (tmpl * cols) + c # offset index
+		for c in range(cols):
+			var o := (i * cols) + c # offset index
 			
 			if i == 0: template_row.append(grid_nodes[c]) # Fill up the template row
 			elif i >= n_items: row_nodes[o].queue_free(); continue # Delete extra nodes
@@ -72,3 +73,4 @@ static func update_grid(grid: GridContainer, items: Array[Variant], header: bool
 # Error messages
 const ER_NO_TEMPLATE_ROW = "UIUtils.%s(node, item, i): Must have at least one template row, but got an empty array."
 const ER_INVALID_ARITY = "UIUtils.%s(node, item, i): must accept 2 or 3 arguments, but got %s"
+
