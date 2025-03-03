@@ -501,6 +501,7 @@ func status(peer: MultiplayerPeer = null) -> StringName:
 		if peers.size() > 0:
 			for p in peers:
 				print("   xxx - ", p.get_remote_port())
+				print("   xxx - ", p.get_remote_address())
 		# if peer.host and peer.host.get_peers().has(id()): return &"Server"
 		return &"Connected"
 	return &"Unknown"
