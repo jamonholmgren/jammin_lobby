@@ -15,11 +15,12 @@ func _physics_process(delta):
 	steering = move_toward(steering, Input.get_axis("right", "left") * MAX_STEER, delta * 10)
 	engine_force = Input.get_axis("back", "forward") * ENGINE_POWER
 
-func _unhandled_input(event: InputEvent) -> void:
+func _unhandled_input(_event: InputEvent) -> void:
 	# Check if the menu is visible -- if so, don't accept input
-	if Main.menu.visible: return
+	return # disabled for now
+	# if Main.menu.visible: return
 	
-	if event is InputEventMouseMotion:
-		# Check if it's still in the screen or not
-		r1.rotate_y(-event.relative.x * 0.005)
-		r2.rotate_x(event.relative.y * 0.005)
+	# if event is InputEventMouseMotion:
+	# 	# Check if it's still in the screen or not
+	# 	r1.rotate_y(-event.relative.x * 0.005)
+	# 	r2.rotate_x(event.relative.y * 0.005)
