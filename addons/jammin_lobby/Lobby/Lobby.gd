@@ -294,7 +294,7 @@ func sync_all_players(updated_players: Dictionary):
 
 		var is_new: bool = !players.has(pid)
 		var is_updated: bool = !is_new and players[pid].hash() != new_player.hash()
-		var is_me: bool = pid == multiplayer_id()
+		var is_me: bool = pid == id()
 		var is_host: bool = pid == SERVER_ID
 		
 		# No change? skip
@@ -422,7 +422,7 @@ func host_send_chat(message: String):
 	if not i_am_host(): return
 
 	var sender_id = sid()
-	if sender_id == 0: sender_id = multiplayer_id()
+	if sender_id == 0: sender_id = id()
 
 	# We are the host, so add the message to our list and broadcast the list to all clients
 	add_chat(message, sender_id)
@@ -481,7 +481,7 @@ func find_by_pid(pid: int):
 
 # Getting state *******************************************************************
 
-func multiplayer_id() -> int:
+func id() -> int:
 	if not online(): return 0
 	return multiplayer.multiplayer_peer.get_unique_id()
 
@@ -495,8 +495,9 @@ func status(peer: MultiplayerPeer = null) -> StringName:
 	if peer.get_connection_status() == MultiplayerPeer.CONNECTION_CONNECTING: return &"Connecting"
 	if peer.get_connection_status() == MultiplayerPeer.CONNECTION_CONNECTED:
 		# check if peer is server by checking if it has a host object
-		if peer.host: return &"Server"
-		if multiplayer and multiplayer.is_server(): return &"Hosting"
+		# if multiplayer and multiplayer.multiplayer_peer and multiplayer.multiplayer_peer == peer and multiplayer.is_server(): return &"Hosting"
+		print(" xxx ", peer.host.get_peers())
+		# if peer.host and peer.host.get_peers().has(id()): return &"Server"
 		return &"Connected"
 	return &"Unknown"
 
@@ -513,7 +514,7 @@ func is_me(p: Dictionary) -> bool: return p and me.id == p.id
 
 func _on_connection_succeeded():
 	lm("_on_connection_succeeded")
-	# var pid = multiplayer_id()
+	# var pid = id()
 	me_connecting_to_lobby.emit()
 	# Tell the server who I am
 	sync_players()

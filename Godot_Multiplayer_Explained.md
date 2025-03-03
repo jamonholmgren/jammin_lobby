@@ -101,14 +101,16 @@ else:
 
 ### Getting your peer ID
 
-You can get your peer ID by using `multiplayer.get_unique_id()`.
+When connected, you can get your peer ID by using `multiplayer.get_unique_id()`. This will change when you reconnect, so don't rely on it as a persistent identifier; however, it works fine as an identifier during a single connection. Basically, it's a session ID.
 
 ```gdscript
 var peer_id = multiplayer.get_unique_id()
 print("Peer ID: ", peer_id)
 ```
 
-However, with the OfflineMultiplayerPeer, this will always return 1.
+- With the OfflineMultiplayerPeer active, this will always return 1, which means "i'm the server".
+- With multiplayer.multiplayer_peer set to `null`, this will return 0 and push an error.
+- For JamminLobby, `Lobby.id()` will return `0` if you're offline (even if you have an OfflineMultiplayerPeer), and your true peer ID if you're connected.
 
 ### `multiplayer.peer_connected`
 

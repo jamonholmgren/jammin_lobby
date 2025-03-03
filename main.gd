@@ -11,7 +11,7 @@ func _ready() -> void:
 	var os = OS.get_name()
 
 	print(Lobby.get_ips())
-	
+
 	multiplayer.peer_connected.connect(_mp_callback.bind("peer_connected"))
 	multiplayer.peer_disconnected.connect(_mp_callback.bind("peer_disconnected"))
 	multiplayer.server_disconnected.connect(_mp_callback.bind("server_disconnected"))
@@ -77,7 +77,7 @@ func create_client(ip: String, port: int) -> void:
 
 
 func _mp_callback(first: Variant, a: Variant = null, b: Variant = null, c: Variant = null, d: Variant = null) -> void:
-	var pid = multiplayer.get_unique_id()
+	var pid = multiplayer.get_unique_id() if Lobby.online() else 0
 	var sid = multiplayer.get_remote_sender_id()
 	lg("pid: " + str(pid) + "; sid: " + str(sid) + "; " + str(first) + "; " + str(a) + "; " + str(b) + "; " + str(c) + "; " + str(d))
 
