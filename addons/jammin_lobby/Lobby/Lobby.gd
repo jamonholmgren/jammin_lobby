@@ -176,6 +176,10 @@ func start_server() -> void:
 	me_connecting_to_lobby.emit()
 	sync_players()
 
+func update_me(data: Dictionary):
+	me.merge(data, true)
+	sync_players()
+
 func sync_players():
 	update_player_data.rpc_id(SERVER_ID, me)
 
@@ -458,7 +462,7 @@ func multiplayer_id() -> int:
 
 func sid() -> int: return multiplayer.get_remote_sender_id()
 
-func online() -> bool: return multiplayer and multiplayer.has_multiplayer_peer() and multiplayer.multiplayer_peer != null and multiplayer.multiplayer_peer.get_connection_status() == MultiplayerPeer.CONNECTION_CONNECTED
+func online() -> bool: return multiplayer and multiplayer.has_multiplayer_peer() and multiplayer.multiplayer_peer is ENetMultiplayerPeer and multiplayer.multiplayer_peer.get_connection_status() == MultiplayerPeer.CONNECTION_CONNECTED
 func pid_in_lobby(pid: int) -> bool: return online() and (pid == SERVER_ID or multiplayer.get_peers().has(pid))
 func i_am_host() -> bool: return online() and multiplayer.is_server()
 func is_client() -> bool: return online() and not i_am_host()
