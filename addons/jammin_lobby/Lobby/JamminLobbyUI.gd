@@ -6,10 +6,10 @@ func _ready() -> void:
   Lobby.hosting_started.connect(_on_hosting_started)
   %LeaveLobbyButton.pressed.connect(_on_leave_lobby_pressed)
   Lobby.hosting_stopped.connect(_on_hosting_stopped)
-  Lobby.me_joining_lobby.connect(_on_me_joining_lobby)
+  Lobby.me_connecting_to_lobby.connect(_on_me_connecting_to_lobby)
   Lobby.me_joined_lobby.connect(_on_me_joined_lobby)
   Lobby.me_left_lobby.connect(_on_me_left_lobby)
-  Lobby.player_joining_lobby.connect(_on_player_joining_lobby)
+  Lobby.player_connecting_to_lobby.connect(_on_player_connecting_to_lobby)
   Lobby.player_joined_lobby.connect(_on_player_joined_lobby)
   Lobby.player_left_lobby.connect(_on_player_left_lobby)
   Lobby.discovery_server_started.connect(_on_discovery_server_started)
@@ -30,17 +30,17 @@ func _on_hosting_stopped(_msg: String = "") -> void:
   %CreateLobby.show()
   %LobbyInfo.hide()
 
-func _on_me_joining_lobby() -> void:
-  print("me_joining_lobby")
+func _on_me_connecting_to_lobby() -> void:
+  print("me_connecting_to_lobby")
 
-func _on_me_joined_lobby() -> void:
-  print("me_joined_lobby")
+func _on_me_joined_lobby(player: Dictionary) -> void:
+  print("me_joined_lobby: ", player)
 
-func _on_me_left_lobby() -> void:
-  print("me_left_lobby")
+func _on_me_left_lobby(player: Dictionary) -> void:
+  print("me_left_lobby: ", player)
 
-func _on_player_joining_lobby(pid: int) -> void:
-  print("player_joining_lobby: ", pid)
+func _on_player_connecting_to_lobby(pid: int) -> void:
+  print("player_connecting_to_lobby: ", pid)
 
 func _on_player_joined_lobby(player: Dictionary) -> void:
   print("player_joined_lobby: ", player)

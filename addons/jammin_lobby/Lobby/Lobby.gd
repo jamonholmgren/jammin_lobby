@@ -6,13 +6,13 @@ extends JamminBase
 # Signals ***********************************************************************
 
 # Signals for the local player
-signal me_joining_lobby()
+signal me_connecting_to_lobby()
 signal me_joined_lobby(player: Dictionary)
 signal me_left_lobby(reason: String)
 signal me_updated(player: Dictionary)
 
 # Signals for other players
-signal player_joining_lobby(pid: int) # all we have is a pid, no player yet
+signal player_connecting_to_lobby(pid: int) # all we have is a pid, no player yet
 signal player_joined_lobby(player: Dictionary)
 signal player_left_lobby(player: Dictionary)
 signal player_updated(player: Dictionary)
@@ -67,6 +67,7 @@ const DEFAULT_PLAYER_DATA: Dictionary = {
 # The key is the player ID, and the value is a dictionary of player data
 # You can access player data with `Lobby.get_player(player_id)`
 var players: Dictionary = {}
+var _host_players: Dictionary = {}
 
 # Local copy of my player data, which gets updated as you join/leave lobbies
 # Don't update this directly; use `Lobby.update_me({ ... })` instead
@@ -172,7 +173,7 @@ func start_server() -> void:
 	
 	# manually signal because there's no built-in signal
 	hosting_started.emit()
-	me_joining_lobby.emit()
+	me_connecting_to_lobby.emit()
 	sync_players()
 
 func sync_players():
@@ -180,14 +181,16 @@ func sync_players():
 
 @rpc("authority", "reliable", "call_local")
 func update_player_data(player: Dictionary):
+	if not i_am_host(): return
 	var pid = sid()
-	player.id = pid
-	if not players.has(pid): players[pid] = DEFAULT_PLAYER_DATA
+	if not _host_players.has(pid): _host_players[pid] = {}
 	# No change? skip
-	if players[pid].hash() == player.hash(): return
+	if _host_players[pid].hash() == player.hash(): return
 	# Merge the new data
-	players[pid].merge(player, true)
-	# Sync to all players
+	_host_players[pid].merge(player, true)
+	_host_players[pid].id = pid
+	# Sync to all _host_players
+
 	host_sync_all_players()
 
 func start_server_failed(error: int) -> void:
@@ -200,6 +203,7 @@ func start_server_failed(error: int) -> void:
 func stop_server(message: String):
 	if not i_am_host(): return
 	close_game_peer()
+	me_left_lobby.emit(me)
 	hosting_stopped.emit(message)
 
 func server_disconnect_all_peers(reason: String = ""):
@@ -268,18 +272,17 @@ func check_for_clients_discovery() -> void:
 
 func host_sync_all_players():
 	if not i_am_host(): return
-	sync_all_players.rpc(players)
+	sync_all_players.rpc(_host_players)
 
-@rpc("authority", "reliable")
-func sync_all_players(new_players: Dictionary):
-	if not i_am_host(): return
+@rpc("authority", "reliable", "call_local")
+func sync_all_players(updated_players: Dictionary):
 
 	# Track the active players so we can remove inactive ones
 	var active_players: Array[int] = []
 	
-	# Process the new players
-	for pid in new_players.values():
-		var new_player: Dictionary = new_players[pid]
+	# Process the updated (maybe) players
+	for pid in updated_players:
+		var new_player: Dictionary = updated_players[pid]
 		active_players.append(pid)
 		var is_new: bool = !players.has(pid)
 		var is_updated: bool = !is_new and players[pid].hash() != new_player.hash()
@@ -294,12 +297,12 @@ func sync_all_players(new_players: Dictionary):
 		
 		# someone else
 		if is_new:
-			player_joined_lobby.emit(pid)
 			if is_me: me_joined_lobby.emit(me)
+			else: player_joined_lobby.emit(new_player)
 		elif is_updated:
-			player_updated.emit(new_player)
 			if is_me: me_updated.emit(me)
-	
+			else: player_updated.emit(new_player)
+
 	# Remove players that are no longer in the lobby
 	for pid in players.keys():
 		if not active_players.has(pid):
@@ -364,7 +367,7 @@ func join(lobby: Dictionary) -> void:
 	if error != OK: return join_error(error)
 	multiplayer.multiplayer_peer = peer
 	# manually signal because there's no built-in signal
-	me_joining_lobby.emit()
+	me_connecting_to_lobby.emit()
 
 func join_error(error: int) -> void:
 	close_game_peer()
@@ -467,7 +470,7 @@ func is_me(p: Dictionary) -> bool: return p and me.id == p.id
 func _on_connection_succeeded():
 	lm("_on_connection_succeeded")
 	var pid = multiplayer_id()
-	me_joining_lobby.emit()
+	me_connecting_to_lobby.emit()
 
 func _on_connection_failed(reason: String = ""):
 	lm("_on_connection_failed: ", reason)
@@ -486,11 +489,11 @@ func _on_remote_peer_connected(pid: int):
 	lm("_on_remote_peer_connected: ", pid)
 	if pid == SERVER_ID:
 		# I joined a server
-		me_joining_lobby.emit()
+		me_connecting_to_lobby.emit()
 	else:
 		assert(i_am_host(), JamminErrors.REMOTE_PEER_NOT_HOST)
 		# Someone else remote to my server is joining_lobby
-		player_joining_lobby.emit(pid)
+		player_connecting_to_lobby.emit(pid)
 
 func _on_remote_peer_disconnected(pid: int, reason: String = ""):
 	lm("_on_remote_peer_disconnected: ", pid, " " + reason)
@@ -502,8 +505,8 @@ func _on_remote_peer_disconnected(pid: int, reason: String = ""):
 
 func _on_peer_connected(pid: int):
 	lm("_on_peer_connected: ", pid)
-	player_joining_lobby.emit(pid)
-	lm("player_joining_lobby.emit: ", pid)
+	player_connecting_to_lobby.emit(pid)
+	lm("player_connecting_to_lobby.emit: ", pid)
 	if i_am_host(): host_sync_all_players()
 
 func _on_peer_disconnected(pid: int):

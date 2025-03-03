@@ -198,12 +198,12 @@ This enables "LAN Party" style gameplay where players can see and join local gam
 
 ```gdscript
 # Lobby state
-signal joining_lobby()
-signal joined_lobby()
-signal left_lobby(reason: String)
+signal me_connecting_to_lobby()
+signal me_joined_lobby(player: JamminPlayer)
+signal me_left_lobby(reason: String)
 
 # Player events
-signal player_joining_lobby(pid: int)
+signal player_connecting_to_lobby(pid: int)
 signal player_joined_lobby(player: JamminPlayer)
 signal player_left_lobby(player: JamminPlayer)
 signal player_updated(player: JamminPlayer)
