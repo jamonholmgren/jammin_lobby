@@ -42,6 +42,5 @@ func update_control_value(key: String, value: Variant) -> void:
 	if control.get(control_value_property) != value: control.set(control_value_property, value)
 
 func _on_value_changed(value: Variant) -> void:
-	Lobby.lm("JamminOptionControl._on_value_changed: ", option_name, " ", value)
 	if callback: callback.call(option_name, value, self)
 	value_changed.emit(option_name, value)

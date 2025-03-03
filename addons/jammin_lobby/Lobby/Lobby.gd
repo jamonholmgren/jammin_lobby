@@ -53,7 +53,6 @@ var save_slot: int = 1
 
 # State *************************************************************************
 
-var game_peer: ENetMultiplayerPeer
 var discovery_server: PacketPeerUDP
 var request: JamminRequest
 
@@ -120,11 +119,11 @@ func setup_request():
 
 func setup_game_peer():
 	# Game peer setup
-	if game_peer: game_peer.queue_free()
-	game_peer = ENetMultiplayerPeer.new()
-	cs(game_peer, "peer_connected", _on_remote_peer_connected)
-	cs(game_peer, "peer_disconnected", _on_remote_peer_disconnected)
-	multiplayer.multiplayer_peer = game_peer
+	close_game_peer()
+	var new_game_peer = ENetMultiplayerPeer.new()
+	cs(new_game_peer, "peer_connected", _on_remote_peer_connected)
+	cs(new_game_peer, "peer_disconnected", _on_remote_peer_disconnected)
+	multiplayer.multiplayer_peer = new_game_peer
 
 # Lobby Host Actions *************************************************************
 
@@ -163,14 +162,12 @@ func stop_hosting(msg: String = "Game ended by host"):
 
 func close_game_peer():
 	multiplayer.multiplayer_peer = OfflineMultiplayerPeer.new()
-	game_peer.close()
 
 # Server Actions *******************************************************************
 
 func start_server() -> void:
-	if online(): close_game_peer()
 	setup_game_peer()
-	var error = game_peer.create_server(config.game_port, config.max_players)
+	var error = multiplayer.multiplayer_peer.create_server(config.game_port, config.max_players)
 	if error != OK: return start_server_failed(error)
 	# TODO: update the lobby name somehow
 	hosting_started.emit() # manually because there's no built-in signal
@@ -334,11 +331,11 @@ func find_lobbies(callback: Callable, retry = 0):
 # Join a server by IP address and port
 func join(lobby: Dictionary) -> void:
 	if not lobby.has("ip") or not lobby.has("port"): return pe("Invalid lobby - ip and port are required", lobby)
-	me_joining_lobby.emit()
 	if multiplayer.has_multiplayer_peer(): close_game_peer()
 	setup_game_peer()
-	var error := game_peer.create_client(lobby.ip, lobby.port)
+	var error: Error = multiplayer.multiplayer_peer.create_client(lobby.ip, lobby.port)
 	if error != OK: return join_error(error)
+	me_joining_lobby.emit()
 
 func join_error(error: int) -> void:
 	close_game_peer()
@@ -348,8 +345,7 @@ func join_error(error: int) -> void:
 func leave(message: String):
 	if not online(): return
 	if i_am_host(): return stop_hosting(message)
-	if multiplayer: multiplayer.multiplayer_peer = null
-	lm("disconnect_peer: ", SERVER_ID)
+	close_game_peer()
 
 # Easy async way to talk to other players!
 func on_ask(req_name: String, callback: Callable = request.no_op): request.on_ask(req_name, callback)
