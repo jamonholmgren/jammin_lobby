@@ -3,19 +3,23 @@ extends VehicleBody3D
 @export var pid: int
 
 @onready var turret: MeshInstance3D = $tank/Turret
-@onready var rotation_point: Node3D = $tank/Turret/RotationPoint
+@onready var r1: Node3D = $tank/Main/RotationPoint
+@onready var r2: Node3D = $tank/Main/RotationPoint/RotationPoint2
 
 const MAX_STEER = 0.9
 const ENGINE_POWER = 150
+const ROTATION_SPEED = 3.0  # Adjust for smoother or snappier rotation
 
 func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
 func _physics_process(delta):
+	turret.rotation.y = lerp_angle(turret.rotation.y, r1.rotation.y, ROTATION_SPEED * delta)
 	steering = move_toward(steering, Input.get_axis("right", "left") * MAX_STEER, delta * 10)
 	engine_force = Input.get_axis("back", "forward") * ENGINE_POWER
 
+
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseMotion:
-		turret.rotate_y(-event.relative.x * 0.005)
-		rotation_point.rotate_x(event.relative.y * 0.005)
+		r1.rotate_y(-event.relative.x * 0.005)
+		r2.rotate_x(event.relative.y * 0.005)
