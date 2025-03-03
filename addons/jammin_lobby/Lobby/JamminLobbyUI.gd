@@ -5,5 +5,4 @@ func _ready() -> void:
   %CreateLobbyButton.pressed.connect(_on_create_lobby_pressed)
 
 func _on_create_lobby_pressed() -> void:
-  push_error("Create lobby pressed")
-  pass
+  Lobby.start_hosting()

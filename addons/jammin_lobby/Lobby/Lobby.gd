@@ -119,13 +119,13 @@ func setup_request():
 	request.name = "Request"
 	add_child(request)
 
-func setup_game_peer():
+func setup_game_peer() -> ENetMultiplayerPeer:
 	# Game peer setup
 	close_game_peer()
 	var new_game_peer = ENetMultiplayerPeer.new()
 	cs(new_game_peer, "peer_connected", _on_remote_peer_connected)
 	cs(new_game_peer, "peer_disconnected", _on_remote_peer_disconnected)
-	multiplayer.multiplayer_peer = new_game_peer
+	return new_game_peer
 
 # Lobby Host Actions *************************************************************
 
@@ -168,9 +168,10 @@ func close_game_peer():
 # Server Actions *******************************************************************
 
 func start_server() -> void:
-	setup_game_peer()
-	var error = multiplayer.multiplayer_peer.create_server(config.game_port, config.max_players)
+	var peer = setup_game_peer()
+	var error = peer.create_server(config.game_port, config.max_players)
 	if error != OK: return start_server_failed(error)
+	multiplayer.multiplayer_peer = peer
 	# TODO: update the lobby name somehow
 	hosting_started.emit() # manually because there's no built-in signal
 
@@ -332,9 +333,10 @@ func find_lobbies(callback: Callable, retry = 0):
 func join(lobby: Dictionary) -> void:
 	if not lobby.has("ip") or not lobby.has("port"): return pe("Invalid lobby - ip and port are required", lobby)
 	if multiplayer.has_multiplayer_peer(): close_game_peer()
-	setup_game_peer()
-	var error: Error = multiplayer.multiplayer_peer.create_client(lobby.ip, lobby.port)
+	var peer = setup_game_peer()
+	var error: Error = peer.create_client(lobby.ip, lobby.port)
 	if error != OK: return join_error(error)
+	multiplayer.multiplayer_peer = peer
 	me_joining_lobby.emit()
 
 func join_error(error: int) -> void:
