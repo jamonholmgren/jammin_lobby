@@ -37,7 +37,7 @@ static func update_grid(grid: GridContainer, items: Array[Variant], header: bool
 	var grid_nodes: Array[Node] = grid.get_children().duplicate()
 
 	# Remove the header nodes from consideration
-	if header: for c in range(cols): grid_nodes.erase(grid_nodes[c])
+	if header: for c in range(cols): grid_nodes.erase(grid_nodes[0])
 
 	var n_rows := ceil(grid_nodes.size() / cols)
 	var n_items := items.size()
@@ -64,8 +64,6 @@ static func update_grid(grid: GridContainer, items: Array[Variant], header: bool
 				grid.add_child(node)
 
 			row_nodes.append(node)
-
-			# If not items, remove the extra nodes
 
 		if arity == 3: update_func.call(row_nodes, item, i)
 		elif arity == 2: update_func.call(row_nodes, item)
