@@ -41,7 +41,7 @@ signal chat_messages_updated()
 
 # Constants **********************************************************
 
-const SERVER_ID := 1 # Always 1 (other players have random pids)
+const SERVER_ID := MultiplayerPeer.TARGET_PEER_SERVER
 
 static var config: JamminLobby = null
 
@@ -53,15 +53,13 @@ var save_slot: int = 1
 
 # State *************************************************************************
 
-@onready var game_peer: ENetMultiplayerPeer = ENetMultiplayerPeer.new()
-@onready var discovery_server: PacketPeerUDP = PacketPeerUDP.new()
-@onready var player_room: Node = Node.new()
-@onready var request: JamminRequest = JamminRequest.new()
+var game_peer: ENetMultiplayerPeer
+var discovery_server: PacketPeerUDP
+var request: JamminRequest
 
 # This gets assigned to your player before you join a lobby
 # You can adjust these values as needed and save your player
 # to disk with `Lobby.save()`
-
 const DEFAULT_PLAYER_DATA: Dictionary = {
 	"id": 0,
 	"username": "",
@@ -86,16 +84,13 @@ var options: JamminOptions = null:
 	})
 
 var found_lobbies: Dictionary = {}
-var current_lobby: Dictionary = {}
-var host_messages: Array[String] = []
 var refreshing := false
 
 # Lifecycle ***********************************************************************
 
 func _ready() -> void:
 	setup_multiplayer()
-	player_room.name = "PlayerRoom"; add_child(player_room)
-	request.name = "Request"; add_child(request)
+	setup_request()
 
 func _process(_delta) -> void:
 	if not discovery_server.is_bound(): set_process(false); return
@@ -106,25 +101,36 @@ func _exit_tree():
 
 func setup_multiplayer():
 	lm("Lobby: _ready")
-	multiplayer.multiplayer_peer = null
+	
+	# Connect to Multiplayer signals if not already online
+	cs(multiplayer, "connected_to_server", _on_connection_succeeded)
+	cs(multiplayer, "connection_failed", _on_connection_failed)
+	cs(multiplayer, "server_disconnected", _on_connection_ended)
+	cs(multiplayer, "peer_connected", _on_peer_connected)
+	cs(multiplayer, "peer_disconnected", _on_peer_disconnected)
 
-	# Multiplayer signals
-	multiplayer.connected_to_server.connect(_on_connection_succeeded)
-	multiplayer.connection_failed.connect(_on_connection_failed)
-	multiplayer.server_disconnected.connect(_on_connection_ended)
-	multiplayer.peer_connected.connect(_on_peer_connected)
-	multiplayer.peer_disconnected.connect(_on_peer_disconnected)
+	# Discovery server
+	if discovery_server: discovery_server.queue_free()
+	discovery_server = PacketPeerUDP.new()
 
-	# Game peer signals
-	game_peer.peer_connected.connect(_on_remote_peer_connected)
-	game_peer.peer_disconnected.connect(_on_remote_peer_disconnected)
+func setup_request():
+	request = JamminRequest.new()
+	request.name = "Request"
+	add_child(request)
+
+func setup_game_peer():
+	# Game peer setup
+	if game_peer: game_peer.queue_free()
+	game_peer = ENetMultiplayerPeer.new()
+	cs(game_peer, "peer_connected", _on_remote_peer_connected)
+	cs(game_peer, "peer_disconnected", _on_remote_peer_disconnected)
+	multiplayer.multiplayer_peer = game_peer
 
 # Lobby Host Actions *************************************************************
 
 func setup(settings: Dictionary):
 	lm("setup")
 	configure(settings)
-	create_me()
 
 func configure(settings: Dictionary):
 	lm("configure")
@@ -156,57 +162,39 @@ func stop_hosting(msg: String = "Game ended by host"):
 	stop_server("Game ended by host; " + msg)	
 
 func close_game_peer():
-	multiplayer.multiplayer_peer = null
+	multiplayer.multiplayer_peer = OfflineMultiplayerPeer.new()
 	game_peer.close()
-	# Reset the game peer to a new instance
-	game_peer = ENetMultiplayerPeer.new()
 
 # Server Actions *******************************************************************
 
 func start_server() -> void:
-	lm("start_server")
-	if game_peer and game_peer.get_connection_status() == MultiplayerPeer.CONNECTION_CONNECTED: close_game_peer()
+	if online(): close_game_peer()
+	setup_game_peer()
 	var error = game_peer.create_server(config.game_port, config.max_players)
-	if error != OK:
-		close_game_peer()
-		var msg = str(error)
-		if error == ERR_CANT_CREATE: msg = "Is port %s already in use?" % config.game_port
-		push_error("Error starting server: " + str(error))
-		hosting_failed.emit(msg)
-		return
-
-	multiplayer.multiplayer_peer = game_peer
-
-	# Update the lobby_name
-	config.lobby_name = me.username + " - Into the Dawn Game Server"
+	if error != OK: return start_server_failed(error)
+	# TODO: update the lobby name somehow
 	hosting_started.emit() # manually because there's no built-in signal
 
-func stop_server(message: String):
-	lm("stop_server: ", message)
-	if not i_am_host(): return
-	if not multiplayer.is_server():
-		lm("!!! stop_server: not multiplayer.is_server() !!!")
-		return
+func start_server_failed(error: int) -> void:
 	close_game_peer()
-	multiplayer.multiplayer_peer = null
+	var msg = str(error)
+	if error == ERR_CANT_CREATE: msg = "Is port %s already in use?" % config.game_port
+	push_error("Error starting server: " + str(error))
+	hosting_failed.emit(msg)
+
+func stop_server(message: String):
+	if not i_am_host(): return
+	close_game_peer()
 	hosting_stopped.emit(message)
-	_on_server_stopped(message)
 
 func server_disconnect_all_peers(reason: String = ""):
 	if not i_am_host(): return
-	lm("server_disconnect_all_peers: ", reason)
-	for pid in multiplayer.get_peers():
-		if pid == SERVER_ID: continue # don't disconnect us
-		if not multiplayer.get_peers().has(pid): continue
-		server_disconnect_peer(pid, reason)
+	for pid in multiplayer.get_peers(): server_disconnect_peer(pid, reason)
 
 func server_disconnect_peer(pid: int, reason: String = "") -> void:
 	if not i_am_host(): return
+	if pid == SERVER_ID: return # can't disconnect the server; use stop_server instead
 	if not pid_in_lobby(pid): return
-	lm("server_disconnect_peer: ", pid, " ", reason)
-	# Tell the player why they are being disconnected
-	send_chat.rpc_id(pid, reason)
-	# Now disconnect them	
 	multiplayer.multiplayer_peer.disconnect_peer(pid)
 	var p = find_by_pid(pid)
 	if not p: return
@@ -345,86 +333,40 @@ func find_lobbies(callback: Callable, retry = 0):
 
 # Join a server by IP address and port
 func join(lobby: Dictionary) -> void:
-	lm("join: ", lobby)
-	if not lobby.has("ip") or not lobby.has("port"): return pe("Invalid lobby: ", lobby)
-
-	current_lobby = lobby
+	if not lobby.has("ip") or not lobby.has("port"): return pe("Invalid lobby - ip and port are required", lobby)
 	me_joining_lobby.emit()
-
-	# Connect via proxy first (not enabled yet)
-	# if proxy and proxy.is_enabled():
-	# 	if not await proxy.connect_proxy(me.username):
-	# 		return left_lobby.emit("Failed to connect to proxy")
-	
 	if multiplayer.has_multiplayer_peer(): close_game_peer()
-
+	setup_game_peer()
 	var error := game_peer.create_client(lobby.ip, lobby.port)
-	if error != OK: me_left_lobby.emit("Failed to connect to lobby. Error code " + str(error)); return
-	multiplayer.multiplayer_peer = game_peer
+	if error != OK: return join_error(error)
+
+func join_error(error: int) -> void:
+	close_game_peer()
+	me_left_lobby.emit("Failed to connect to lobby. Error code " + str(error))	
 
 # Leave the current server
 func leave(message: String):
-	if not in_lobby(): return
-	lm("leave: ", message)
-	me.is_ready = false
+	if not online(): return
 	if i_am_host(): return stop_hosting(message)
-	# Bubble-wrapping this because it keeps erroring out
-	# if multiplayer and multiplayer.multiplayer_peer and multiplayer.multiplayer_peer.get_connection_status() == MultiplayerPeer.CONNECTION_CONNECTED:
-	# 	if multiplayer.get_peers().has(SERVER_ID):
-	# 		# multiplayer.multiplayer_peer.disconnect_peer(SERVER_ID)
-	# 		var pr: ENetPacketPeer = multiplayer.multiplayer_peer.get_peer(SERVER_ID)
-	# 		if pr and pr.get_state() == ENetPacketPeer.STATE_CONNECTED: pr.peer_disconnect_later(0)
 	if multiplayer: multiplayer.multiplayer_peer = null
 	lm("disconnect_peer: ", SERVER_ID)
 
-func create_player_if_not_exists(pid: int) -> JamminPlayer:
-	lm("create_player_if_not_exists: ", pid)
-	var p := find_by_pid(pid)
-	if p: return p
-	p = config.player_scene.instantiate()
-	if config.player_script != null: p.set_script(config.player_script)
-	p.stop_sync()
-	p.set_id(pid)
-	if pid == SERVER_ID: host = p
-	p.is_ready = false
-	p.updated.connect(_on_player_updated.bind(p))
-	player_room.add_child(p)
-	return p
-
-# Host methods **************************************************
-
-func create_me() -> JamminPlayer:
-	lm("create_me")
-	# Create local player instance
-	me = create_player_if_not_exists(multiplayer_id())
-	host = me
-	if config.autosave: me.restore() # from disk
-	me.on_me_created()
-	return me
-
-# Easy way to talk to other players!
-func on_ask(req_name: String, player_fn: Callable = request.no_op): request.on_ask(req_name, player_fn)
+# Easy async way to talk to other players!
+func on_ask(req_name: String, callback: Callable = request.no_op): request.on_ask(req_name, callback)
 func remove_on_ask(req_name: String): request.remove_on_ask(req_name)
 func ask(pid: int, req_name: String, data: Dictionary) -> Variant: return await request.ask(pid, req_name, data)
-func ask_all(req_name: String, data: Dictionary = {}) -> void: request.broadcast(req_name, data)
 func broadcast(req_name: String, data: Dictionary = {}) -> void: request.broadcast(req_name, data)
 
 # Chat methods *******************************************************************
-
-func send_chat_to_host(message: String) -> Error:
-	# Can't send chat messages if we're not in a lobby
-	if multiplayer_id() == 0: return ERR_UNAVAILABLE
+func send_chat(message: String):
+	if not online(): return send_system_chat(message)
 	
-	send_chat.rpc_id(SERVER_ID, message)
-	return OK
+	# Send to host, who will then broadcast to all clients
+	host_send_chat.rpc_id(SERVER_ID, message)
 
 @rpc("any_peer", "reliable", "call_local")
-func send_chat(message: String) -> Error:
-	# If we're not in a lobby, we send a system message
-	if multiplayer_id() == 0: return send_system_chat(message)
-
-	# If we're not the host, tell the host to add the message and it will then be sent to all clients
-	if not i_am_host(): return send_chat_to_host(message)
+func host_send_chat(message: String):
+	if not i_am_host(): return
 
 	var sender_id = sid()
 	if sender_id == 0: sender_id = multiplayer_id()
@@ -437,7 +379,6 @@ func send_chat(message: String) -> Error:
 
 	broadcast_chat_messages()
 	chat_messages_updated.emit() # for us
-	return OK
 
 # System messages are local only, and aren't broadcast to other clients
 func send_system_chat(message: String):
@@ -456,6 +397,7 @@ func add_chat(message: String, sender_id: int, channel: String = "lobby"):
 	})
 
 func broadcast_chat_messages():
+	if not i_am_host(): return
 	var m = chat_messages.filter(func(msg): return msg.get("channel", "lobby") != "system")
 	update_chat_messages.rpc(m)
 
@@ -471,107 +413,67 @@ func update_chat_messages(messages: Array[Dictionary]):
 # Player methods *******************************************************************
 
 func player_ids() -> Array[int]:
-	if not has_multiplayer_connection(): return []
+	if not online(): return []
 	var ids: Array[int] = [SERVER_ID]
 	for pid in multiplayer.get_peers(): if not ids.has(pid): ids.append(pid)
 	return ids
 
-func find_by_pid(pid: int) -> JamminPlayer:
-	if pid == 0: return null
-	for p in players(): if p.id == pid or p.get_multiplayer_authority() == pid: return p
-	return null
-
-# Returns if all active players are ready
-func all_ready() -> bool:
-	return players().all(func(p): return p.is_ready)
+func find_by_pid(pid: int) -> Dictionary:
+	if pid == 0: return me
+	return players.get(pid, null)
 
 # Getting state *******************************************************************
 
 func multiplayer_id() -> int:
-	if not has_multiplayer_connection(): return 0
+	if not online(): return 0
 	return multiplayer.multiplayer_peer.get_unique_id()
 
-func pid_in_lobby(pid: int) -> bool: return pid == SERVER_ID or multiplayer.get_peers().has(pid)
-func in_lobby() -> bool:  return i_am_host() or has_multiplayer_connection()
-func sid() -> int:        return multiplayer.get_remote_sender_id()
-func i_am_host() -> bool:   return has_multiplayer_connection() and multiplayer.is_server()
-func is_client() -> bool: return has_multiplayer_connection() and not i_am_host()
-func is_me(p: JamminPlayer) -> bool: return p and me == p
-func has_multiplayer_connection() -> bool: return multiplayer and multiplayer.has_multiplayer_peer() and multiplayer.multiplayer_peer != null and multiplayer.multiplayer_peer.get_connection_status() == MultiplayerPeer.CONNECTION_CONNECTED
-func last_host_message() -> String: return host_messages.back() if host_messages.size() > 0 else ""
-func is_authority(node: Node) -> bool:
-	if multiplayer.multiplayer_peer and multiplayer.multiplayer_peer.get_connection_status() == MultiplayerPeer.CONNECTION_CONNECTED: return node.is_multiplayer_authority()
-	return false
+func sid() -> int: return multiplayer.get_remote_sender_id()
+
+func online() -> bool: return multiplayer and multiplayer.has_multiplayer_peer() and multiplayer.multiplayer_peer != null and multiplayer.multiplayer_peer.get_connection_status() == MultiplayerPeer.CONNECTION_CONNECTED
+func pid_in_lobby(pid: int) -> bool: return online() and (pid == SERVER_ID or multiplayer.get_peers().has(pid))
+func i_am_host() -> bool: return online() and multiplayer.is_server()
+func is_client() -> bool: return online() and not i_am_host()
+func is_authority(node: Node) -> bool: return online() and node.is_multiplayer_authority()
+func is_me(p: Dictionary) -> bool: return p and me.id == p.id
 
 # Signal Handlers ***************************************************************
 
-func _on_player_updated(p: JamminPlayer):
-	# We are both 0 and <some other id>, so update both
-	player_names[p.id] = p.username
-	if is_me(p): player_names[0] = p.username
-	player_updated.emit(p)
-	if i_am_host(): host_player_updated.emit(p)
-
 func _on_connection_succeeded():
 	var pid = multiplayer_id()
-	lm("_on_connection_succeeded: ", pid)
-	me.set_id(pid)
 	me_joining_lobby.emit()
 	if i_am_host(): host_joining_lobby.emit()
 
 func _on_connection_failed(reason: String = ""):
-	lm("_on_connection_failed: ", reason)
 	me_left_lobby.emit(reason)
 	if i_am_host(): host_left_lobby.emit(reason)
 
 func _on_connection_ended(reason: String = ""):
 	lm("_on_connection_ended: ", reason)
 	# Per: https://github.com/godotengine/godot/issues/77723#issuecomment-1830689802
-	multiplayer.multiplayer_peer = OfflineMultiplayerPeer.new()
-	me.stop_sync()
+	close_game_peer()
 	me_left_lobby.emit(reason)
 	if i_am_host(): host_left_lobby.emit(reason)
 	
-func _on_server_started():
-	lm("_on_server_started")
-	hosting_started.emit()
-	lm("hosting_started.emit")
-	me.start_sync()
-
-func _on_server_failed(message: String):
-	lm("_on_server_failed: ", message)
-	hosting_failed.emit(message)
-	lm("hosting_failed.emit: ", message)
-	me.stop_sync()
-
-func _on_server_stopped(message: String = ""):
-	lm("_on_server_stopped: ", message)
-	hosting_stopped.emit(message)
-	lm("hosting_stopped.emit: ", message)
-	me.stop_sync()
+func _on_server_started(): hosting_started.emit()
+func _on_server_failed(message: String): hosting_failed.emit(message)
 
 func _on_remote_peer_connected(pid: int):
-	lm("_on_remote_peer_connected: ", pid)
+	# TODO -- stuff here needs to be thought through
 	if pid == SERVER_ID:
-		# I connected to a server
+		# I joined a server
 		me_joining_lobby.emit()
 		if i_am_host(): host_joining_lobby.emit()
-		lm("me_joining_lobby.emit: ", pid)
-
-		# Now set my own id via multiplayer_id(), now that I have a connection
-		me.set_id(multiplayer_id())
 	else:
 		if not i_am_host():
-			push_error("My assumption is wrong; I'm not the host but I got a remote peer connected!")
-			lm("!!! My assumption is wrong; I'm not the host but I got a remote peer connected!")
+			push_error("My assumption is wrong; I'm not the host but I got a remote peer online!")
+			lm("!!! My assumption is wrong; I'm not the host but I got a remote peer online!")
 			return
 
-		# Someone else connected to my server, is joining_lobby
+		# Someone else online to my server, is joining_lobby
 		player_joining_lobby.emit(pid)
 		if i_am_host(): host_player_joining_lobby.emit(pid)
 		lm("player_joining_lobby.emit: ", pid)
-
-	spawn_all_players(player_ids())
 
 func _on_remote_peer_disconnected(pid: int, reason: String = ""):
 	lm("_on_remote_peer_disconnected: ", pid, " " + reason)
@@ -587,10 +489,6 @@ func _on_peer_connected(pid: int):
 	player_joining_lobby.emit(pid)
 	if i_am_host(): host_player_joining_lobby.emit(pid)
 	lm("player_joining_lobby.emit: ", pid)
-
-	# Create the player if it doesn't already exist
-	var p = create_player_if_not_exists(pid)
-	
 	if i_am_host(): host_sync_all_players()
 
 func _on_peer_disconnected(pid: int):

@@ -38,9 +38,9 @@ func _set(k: StringName, v: Variant):
 func autosave() -> void:
 	if Lobby.autosave: debounce(500, save)
 
-func save() -> Options:
+func save() -> JamminOptions:
 	backup()
-	save_json(save_file, local)
+	# save_json(save_file, local)
 
 	# Test if the saved file is valid
 	var error = test_restore_options(save_file)
@@ -50,12 +50,12 @@ func save() -> Options:
 	print("saved: ", local)
 	return self
 
-func restore() -> Options:
-	if not file_exists(save_file): return self
+func restore() -> JamminOptions:
+	#if not file_exists(save_file): return self
 
-	var restored = load_json(save_file)
-	for k in restored: set(k, restored[k])
-	print("restored: ", local)
+	# var restored = load_json(save_file)
+	# for k in restored: set(k, restored[k])
+	# print("restored: ", local)
 	return self
 
 func clear_all():
@@ -71,21 +71,22 @@ func reset_to_defaults():
 	restore()
 
 func backup():
-	copy_file(save_file, backup_file)
+	pass
+	#copy_file(save_file, backup_file)
 
 func test_restore_options(loc: String):
 	# Test restoring the options, make sure it ends up being the same as current
-	var restored = load_json(loc)
-	for key in local:
-		if not restored.has(key) or local[key] != restored[key]:
-			# Something went wrong; restore from a backup if it exists
-			var bkp = loc + ".backup.json"
-			copy_file(bkp, loc)
-			pe("Lobby: tested options restore, but they didn't match! ", key, ": ", local[key], " != ", restored[key])
-			return ERR_INVALID_DATA
+	# var restored = load_json(loc)
+	# for key in local:
+	# 	if not restored.has(key) or local[key] != restored[key]:
+	# 		# Something went wrong; restore from a backup if it exists
+	# 		var bkp = loc + ".backup.json"
+	# 		copy_file(bkp, loc)
+	# 		pe("Lobby: tested options restore, but they didn't match! ", key, ": ", local[key], " != ", restored[key])
+	# 		return ERR_INVALID_DATA
 	return OK
 
-func problem(message: String) -> Options:
+func problem(message: String) -> JamminOptions:
 	push_error(message)
 	problem_detected.emit(message)
 	return self
