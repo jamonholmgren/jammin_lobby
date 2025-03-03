@@ -516,6 +516,8 @@ func _on_connection_ended(reason: String = ""):
 func _on_server_started(): hosting_started.emit()
 func _on_server_failed(message: String): hosting_failed.emit(message)
 
+# This is called when any remote peer connects to my multiplayer peer
+# It's less useful than other signals.
 func _on_remote_peer_connected(pid: int):
 	lm("_on_remote_peer_connected: ", pid)
 	if pid == SERVER_ID:
@@ -524,15 +526,15 @@ func _on_remote_peer_connected(pid: int):
 		me_connecting_to_lobby.emit()
 	else:
 		assert(i_am_host(), JamminErrors.REMOTE_PEER_NOT_HOST)
-		# Someone else remote to my server is joining_lobby
-		player_connecting_to_lobby.emit(pid)
+		# # Someone else remote to my server is joining_lobby
+		# player_connecting_to_lobby.emit(pid)
 
 func _on_remote_peer_disconnected(pid: int, reason: String = ""):
 	lm("_on_remote_peer_disconnected: ", pid, " " + reason)
 	if pid == SERVER_ID: leave("Host disconnected")
 	var p = find_by_pid(pid)
 	if not p: return
-	player_left_lobby.emit(p)
+	player_left_lobby.emit(p) # TODO: Does this really need to be here?
 	if i_am_host():
 		_host_players.erase(pid)
 		host_sync_all_players()
@@ -541,7 +543,6 @@ func _on_peer_connected(pid: int):
 	lm("_on_peer_connected: ", pid)
 	player_connecting_to_lobby.emit(pid)
 	lm("player_connecting_to_lobby.emit: ", pid)
-	if i_am_host(): host_sync_all_players()
 
 func _on_peer_disconnected(pid: int):
 	lm("_on_peer_disconnected: ", pid)
