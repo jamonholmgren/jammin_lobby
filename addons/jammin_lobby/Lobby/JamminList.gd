@@ -1,8 +1,17 @@
-class_name UIUtils
+class_name JamminList
 
-static func update_list(nodes_original: Array[Node], items: Array[Variant], header: bool, update_func: Callable) -> void:
+# In Godot's 2D UI, I often find myself needing to dynamically add and subtract rows of
+# data (such as in a multiplayer lobby system, an inventory system, etc).
+#
+# JamminList makes updating lists and grids really easy! Build your UI and provide a
+# template row (and an optional header row), along with a function to update every item
+# in the list/grid, and then let JamminList do the rest.
+#
+# See more info here: https://gist.github.com/jamonholmgren/a584c1b55b2fd21b7a260b5f3c0b0b6f
+
+static func update_list(node_parent: Node, items: Array[Variant], header: bool, update_func: Callable) -> void:
 	# Ignore the header node if it exists
-	var nodes: Array[Node] = nodes_original.duplicate()
+	var nodes: Array[Node] = node_parent.get_children().duplicate()
 	if header: nodes.erase(nodes[0])
 	
 	var template_row := nodes[0]
@@ -24,8 +33,7 @@ static func update_list(nodes_original: Array[Node], items: Array[Variant], head
 		var node := nodes[i] if i < n_nodes else null
 		if not node:
 			node = template_row.duplicate()
-			nodes.append(node)
-			n_nodes += 1
+			node_parent.add_child(node)
 
 		assert(arity == 3 or arity == 2, ER_INVALID_ARITY % ["update_list", arity])
 

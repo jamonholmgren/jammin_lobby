@@ -78,9 +78,8 @@ func update_lobby_ui() -> void:
 	%CreateLobby.hide()
 	%LobbyInfo.show()
 
-	var nodes = %PlayerRows.get_children()
 	var players = Lobby.players.values()
-	UIUtils.update_list(nodes, players, false, update_player_row)
+	JamminList.update_list(%PlayerRows, players, false, update_player_row)
 	
 	var fake_lobbies = [
 		{"name": "Lobby 1", "players": 2, "host": "Player 1"},
@@ -92,7 +91,7 @@ func update_lobby_ui() -> void:
 		{"name": "Lobby 7", "players": 4, "host": "Player 7"},
 		{"name": "Lobby 8", "players": 4, "host": "Player 8"},
 	]
-	UIUtils.update_grid(%LobbiesGrid, fake_lobbies, true, update_lobby_row)
+	JamminList.update_grid(%LobbiesGrid, fake_lobbies, true, update_lobby_row)
 
 func update_player_row(node: Node, player: Dictionary, i: int) -> void:
 	var btn = node.get_node("ReadyButton")

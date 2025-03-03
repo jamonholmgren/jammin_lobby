@@ -10,6 +10,15 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_0kqi4")
+lobby_name = null
+game_port = null
+broadcast_port = null
+response_port = null
+max_players = null
+connection_timeout = null
+autosave = null
+player_save_file = null
+options_save_file = null
 
 [node name="MarginContainer" type="MarginContainer" parent="."]
 layout_mode = 1
