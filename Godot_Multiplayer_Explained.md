@@ -112,8 +112,20 @@ However, with the OfflineMultiplayerPeer, this will always return 1.
 
 ### `multiplayer.peer_connected`
 
+This fires when a new peer connects to the server. It provides the new peer_id. `get_remote_sender_id()` returns 0.
+
 ```gdscript
 multiplayer.peer_connected.connect(func(peer_id: int):
+  print("Peer connected: ", peer_id)
+)
+```
+
+### `multiplayer.multiplayer_peer.peer_connected`
+
+On the server, this seems to fire the same time as `multiplayer.peer_connected`. It provides the new peer_id. `get_remote_sender_id()` returns 0.
+
+```gdscript
+multiplayer.multiplayer_peer.peer_connected.connect(func(peer_id: int):
   print("Peer connected: ", peer_id)
 )
 ```

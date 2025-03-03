@@ -11,13 +11,7 @@ func _ready() -> void:
 	var os = OS.get_name()
 
 	print(Lobby.get_ips())
-
-	if os == "Windows":
-		create_client("10.0.0.116", 12345)
-	else:
-		create_server(12345)
-
-func create_server(port: int) -> void:
+	
 	multiplayer.peer_connected.connect(_mp_callback.bind("peer_connected"))
 	multiplayer.peer_disconnected.connect(_mp_callback.bind("peer_disconnected"))
 	multiplayer.server_disconnected.connect(_mp_callback.bind("server_disconnected"))
@@ -27,6 +21,13 @@ func create_server(port: int) -> void:
 	multiplayer.peer_authenticating.connect(_mp_callback.bind("peer_authenticating"))
 	multiplayer.peer_authentication_failed.connect(_mp_callback.bind("peer_authentication_failed"))
 
+	if os == "Windows":
+		create_client("10.0.0.116", 12345)
+	else:
+		create_server(12345)
+
+func create_server(port: int) -> void:
+
 	lg(str(multiplayer.get_unique_id()))
 	lg(str(multiplayer.multiplayer_peer.get_connection_status()))
 	multiplayer.multiplayer_peer = null
@@ -35,8 +36,8 @@ func create_server(port: int) -> void:
 	
 	var peer := ENetMultiplayerPeer.new()
 
-	peer.peer_connected.connect(_mp_callback.bind("peer_connected"))
-	peer.peer_disconnected.connect(_mp_callback.bind("peer_disconnected"))
+	peer.peer_connected.connect(_mp_callback.bind("@peer_connected"))
+	peer.peer_disconnected.connect(_mp_callback.bind("@peer_disconnected"))
 
 	# I'll run the server on macos and connect to it from my windows machine manually.
 	var err = peer.create_server(port, 8)
@@ -75,8 +76,10 @@ func create_client(ip: String, port: int) -> void:
 	lg("peer status: " + str(Lobby.status(client)))
 
 
-func _mp_callback(event: String, a: Variant = null, b: Variant = null, c: Variant = null, d: Variant = null) -> void:
-	lg(event + " - " + str(a) + "; " + str(b) + "; " + str(c) + "; " + str(d))
+func _mp_callback(first: Variant, a: Variant = null, b: Variant = null, c: Variant = null, d: Variant = null) -> void:
+	var pid = multiplayer.get_unique_id()
+	var sid = multiplayer.get_remote_sender_id()
+	lg("pid: " + str(pid) + "; sid: " + str(sid) + "; " + str(first) + "; " + str(a) + "; " + str(b) + "; " + str(c) + "; " + str(d))
 
 func lg(message: String) -> void:
 	match Lobby.status():
