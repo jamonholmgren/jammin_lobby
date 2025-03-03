@@ -10,3 +10,4 @@ script = ExtResource("1_x3fsg")
 [node name="Level" parent="." instance=ExtResource("1_6cjoc")]
 
 [node name="JamminLobbyUI" parent="." instance=ExtResource("2_3y7pk")]
+lobby_name = "Attack Tanks"

@@ -10,15 +10,6 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_0kqi4")
-lobby_name = null
-game_port = null
-broadcast_port = null
-response_port = null
-max_players = null
-connection_timeout = null
-autosave = null
-player_save_file = null
-options_save_file = null
 
 [node name="MarginContainer" type="MarginContainer" parent="."]
 layout_mode = 1
@@ -136,6 +127,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 tooltip_text = "Template0"
 mouse_filter = 0
+mouse_default_cursor_shape = 2
 theme_override_font_sizes/font_size = 20
 text = "Jammin Tanks"
 
@@ -238,3 +230,24 @@ text = "Jammin"
 layout_mode = 2
 disabled = true
 text = "Ready"
+
+[node name="JoiningOverlay" type="Panel" parent="MarginContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(400, 100)
+layout_mode = 2
+
+[node name="Label" type="Label" parent="MarginContainer/JoiningOverlay"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -20.0
+offset_top = -11.5
+offset_right = 20.0
+offset_bottom = 11.5
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 40
+text = "Joining Lobby..."

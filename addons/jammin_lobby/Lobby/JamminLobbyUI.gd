@@ -12,13 +12,16 @@ func _ready() -> void:
 	Lobby.me_connecting_to_lobby.connect(_on_me_connecting_to_lobby)
 	Lobby.me_joined_lobby.connect(_on_me_joined_lobby)
 	Lobby.me_left_lobby.connect(_on_me_left_lobby)
+	Lobby.me_updated.connect(_on_me_updated)
 	Lobby.player_connecting_to_lobby.connect(_on_player_connecting_to_lobby)
 	Lobby.player_joined_lobby.connect(_on_player_joined_lobby)
 	Lobby.player_left_lobby.connect(_on_player_left_lobby)
+	Lobby.player_updated.connect(_on_player_updated)
 	Lobby.discovery_server_started.connect(_on_discovery_server_started)
 	Lobby.discovery_server_failed.connect(_on_discovery_server_failed)
 	Lobby.discovery_server_stopped.connect(_on_discovery_server_stopped)
 	Lobby.lobbies_refreshed.connect(_on_lobbies_refreshed)
+	%JoiningOverlay.hide()
 	update_lobby_ui()
 
 func _on_create_lobby_pressed() -> void:
@@ -44,57 +47,71 @@ func _on_lobbies_refreshed(lobbies: Dictionary, error: String = "") -> void:
 		%RefreshButton.text = "Error: " + error
 		%RefreshButton.disabled = false
 	else:
-		%RefreshButton.text = "Refresh"
+		%RefreshButton.text = "Refresh " + str(Lobby.found_lobbies.size())
 		%RefreshButton.disabled = false
+	
+	update_lobby_ui()
 
 func _on_hosting_stopped(_msg: String = "") -> void:
 	update_lobby_ui()
 
 func _on_me_connecting_to_lobby() -> void:
-	print("me_connecting_to_lobby")
+	Lobby.lm("me_connecting_to_lobby")
 	update_lobby_ui()
 
 func _on_me_joined_lobby(player: Dictionary) -> void:
-	print("me_joined_lobby: ", player)
+	Lobby.lm("me_joined_lobby: ", player)
+	%JoiningOverlay.hide()
 	update_lobby_ui()
 
-func _on_me_left_lobby(player: Dictionary) -> void:
-	print("me_left_lobby: ", player)
+func _on_me_left_lobby(reason: String) -> void:
+	Lobby.lm("me_left_lobby: ", reason)
+	%JoiningOverlay.hide()
+	update_lobby_ui()
+
+func _on_me_updated(player: Dictionary) -> void:
+	Lobby.lm("me_updated: ", player)
 	update_lobby_ui()
 
 func _on_player_connecting_to_lobby(pid: int) -> void:
-	print("player_connecting_to_lobby: ", pid)
+	Lobby.lm("player_connecting_to_lobby: ", pid)
 	update_lobby_ui()
 
 func _on_player_joined_lobby(player: Dictionary) -> void:
-	print("player_joined_lobby: ", player)
+	Lobby.lm("player_joined_lobby: ", player)
 	update_lobby_ui()
 
 func _on_player_left_lobby(player: Dictionary) -> void:
-	print("player_left_lobby: ", player)
+	Lobby.lm("player_left_lobby: ", player)
+	update_lobby_ui()
+
+func _on_player_updated(player: Dictionary) -> void:
+	Lobby.lm("player_updated: ", player)
 	update_lobby_ui()
 
 func _on_discovery_server_started() -> void:
-	print("discovery_server_started")
+	Lobby.lm("discovery_server_started")
 	update_lobby_ui()
 
 func _on_discovery_server_failed() -> void:
-	print("discovery_server_failed")
+	Lobby.lm("discovery_server_failed")
 	update_lobby_ui()
 
 func _on_discovery_server_stopped() -> void:
-	print("discovery_server_stopped")
+	Lobby.lm("discovery_server_stopped")
 	update_lobby_ui()
 
 func update_lobby_ui() -> void:
+	var lobbies = Lobby.found_lobbies.values()
+	JamminList.update_grid(%LobbiesGrid, lobbies, true, update_lobby_row)
+	
 	if not Lobby.online(): return show_create_lobby()
 	%CreateLobby.hide()
 	%LobbyInfo.show()
 
 	var players = Lobby.players.values()
-	var lobbies = Lobby.found_lobbies.values()
+	Lobby.lm("  --  Players: ", players)
 	JamminList.update_list(%PlayerRows, players, false, update_player_row)
-	JamminList.update_grid(%LobbiesGrid, lobbies, true, update_lobby_row)
 
 func update_player_row(node: Node, player: Dictionary, i: int) -> void:
 	var btn = node.get_node("ReadyButton")
@@ -106,9 +123,9 @@ func update_player_row(node: Node, player: Dictionary, i: int) -> void:
 		btn.disabled = false
 
 func update_lobby_row(nodes: Array[Node], lobby: Dictionary, i: int) -> void:
-	nodes[0].text = lobby.name
-	nodes[1].text = str(lobby.players) + " / " + str(Lobby.config.max_players)
-	nodes[2].text = lobby.host
+	nodes[0].text = lobby.lobby_name
+	nodes[1].text = lobby.game_version
+	nodes[2].text = str(lobby.players) + " / " + str(lobby.max_players)
 	nodes[3].text = str(randi() % 150) + "ms" # fake ping
 
 	Lobby.cs(nodes[0], "gui_input", _on_lobby_clicked.bind(lobby))
@@ -118,9 +135,10 @@ func show_create_lobby():
 	%LobbyInfo.hide()
 
 func _on_ready_pressed() -> void:
-	Lobby.update_me({ ready = !Lobby.me.ready })
+	Lobby.update_me({ ready = !Lobby.me.get("ready", false) })
 	Lobby.sync_players()
 
 func _on_lobby_clicked(event: InputEvent, lobby: Dictionary) -> void:
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
-		print("lobby clicked: ", lobby)
+		# %JoiningOverlay.show()
+		Lobby.join(lobby)

@@ -183,9 +183,10 @@ func update_me(data: Dictionary):
 	sync_players()
 
 func sync_players():
+	if not online(): return
 	update_player_data.rpc_id(SERVER_ID, me)
 
-@rpc("authority", "reliable", "call_local")
+@rpc("any_peer", "reliable", "call_local")
 func update_player_data(player: Dictionary):
 	if not i_am_host(): return
 	var pid = sid()
@@ -203,13 +204,13 @@ func start_server_failed(error: int) -> void:
 	close_game_peer()
 	var msg = str(error)
 	if error == ERR_CANT_CREATE: msg = "Is port %s already in use?" % config.game_port
-	push_error("Error starting server: " + str(error))
+	push_error("Error starting server (" + str(error) + "): " + msg)
 	hosting_failed.emit(msg)
 
 func stop_server(message: String):
 	if not i_am_host(): return
 	close_game_peer()
-	me_left_lobby.emit(me)
+	me_left_lobby.emit(message)
 	hosting_stopped.emit(message)
 
 func server_disconnect_all_peers(reason: String = ""):
@@ -254,25 +255,25 @@ func check_for_clients_discovery() -> void:
 	if discovery_server.get_available_packet_count() == 0: return
 
 	var ping = {
-		"data": discovery_server.get_packet().get_string_from_utf8(),
+		"data": discovery_server.get_packet().get_string_from_ascii(),
 		"ip": discovery_server.get_packet_ip(),
 		"port": discovery_server.get_packet_port()
 	}
 	if ping.data != refresh_packet(): return
 
 	var response = {
-		"game_name": config.game_name,
-		"game_version": config.game_version,
+		"game_name": game_name,
+		"game_version": game_version,
 		"lobby_name": config.lobby_name,
 		"game_port": config.game_port,
-		"players": multiplayer.get_peers().size() + 1, # +1 for the server itself
+		"players": player_count(),
 		"max_players": config.max_players
 	}
 	var response_string = JSON.stringify(response)
 
 	# lm("Sending response: ", response, " to ", ping.ip, ":", ping.port)
 	discovery_server.set_dest_address(ping.ip, ping.port)
-	discovery_server.put_packet(response_string.to_utf8_buffer())
+	discovery_server.put_packet(response_string.to_ascii_buffer())
 
 # Client Actions *******************************************************************
 
@@ -290,6 +291,7 @@ func sync_all_players(updated_players: Dictionary):
 	for pid in updated_players:
 		var new_player: Dictionary = updated_players[pid]
 		active_players.append(pid)
+
 		var is_new: bool = !players.has(pid)
 		var is_updated: bool = !is_new and players[pid].hash() != new_player.hash()
 		var is_me: bool = pid == multiplayer_id()
@@ -303,9 +305,12 @@ func sync_all_players(updated_players: Dictionary):
 		
 		# someone else
 		if is_new:
+			players[pid] = {}
+			players[pid].merge(new_player, true)
 			if is_me: me_joined_lobby.emit(me)
 			else: player_joined_lobby.emit(new_player)
 		elif is_updated:
+			players[pid].merge(new_player, true)
 			if is_me: me_updated.emit(me)
 			else: player_updated.emit(new_player)
 
@@ -318,7 +323,7 @@ func sync_all_players(updated_players: Dictionary):
 			player_left_lobby.emit(p)
 
 func refresh_packet() -> String:
-	return config.lobby_name + &"-LOOKING-FOR-LOBBY"
+	return "LOOKING-FOR-LOBBY"
 
 # Refresh the list of local servers
 func find_lobbies(callback: Callable = func(_lobbies: Dictionary, _error: String = ""): pass, retry = 0):
@@ -334,8 +339,8 @@ func find_lobbies(callback: Callable = func(_lobbies: Dictionary, _error: String
 	if error != OK:
 		refreshing = false
 		var error_msg = "Error binding client discovery broadcast: " + str(error)
-		callback.call([], error_msg)
-		lobbies_refreshed.emit([], error_msg)
+		callback.call({}, error_msg)
+		lobbies_refreshed.emit({}, error_msg)
 		return
 	
 	discovery_server.set_broadcast_enabled(true)
@@ -346,8 +351,10 @@ func find_lobbies(callback: Callable = func(_lobbies: Dictionary, _error: String
 	await wait(0.2 * (retry + 1))
 	
 	while discovery_server.get_available_packet_count() > 0:
+		var packet = discovery_server.get_packet()
+		var decoded = packet.get_string_from_utf8()
 		var ping = {
-			"data": discovery_server.get_packet().get_string_from_utf8(),
+			"data": decoded,
 			"ip": discovery_server.get_packet_ip(),
 			"port": discovery_server.get_packet_port()
 		}
@@ -364,24 +371,29 @@ func find_lobbies(callback: Callable = func(_lobbies: Dictionary, _error: String
 	refreshing = false
 
 	# Refresh again up to 3 times, sometimes it takes a bit longer
-	if found_lobbies.size() <= 0 and retry < 3: # auto-refresh temporarily disabled for testing
+	if found_lobbies.size() <= 0 and retry < 3:
 		find_lobbies(callback, retry + 1)
 	else:
 		callback.call(found_lobbies, "")
 		lobbies_refreshed.emit(found_lobbies, "")
+		lm("found_lobbies: ", found_lobbies)
 
 # Join a server by IP address and port
 func join(lobby: Dictionary) -> void:
 	if not lobby.has("ip") or not lobby.has("port"): return pe("Invalid lobby - ip and port are required", lobby)
-	if multiplayer.has_multiplayer_peer(): close_game_peer()
+	lm("Lobby.join: ", lobby)
+	close_game_peer()
 	var peer = setup_game_peer()
-	var error: Error = peer.create_client(lobby.ip, lobby.port)
+	var ip: String = str(lobby.ip)
+	var port: int = int(str(lobby.get("game_port", lobby.port)))
+	lm("ip: ", ip, " port: ", port)
+	var error: Error = peer.create_client(ip, port)
+	lm("error: ", error)
 	if error != OK: return join_error(error)
 	multiplayer.multiplayer_peer = peer
-	# manually signal because there's no built-in signal
-	me_connecting_to_lobby.emit()
 
 func join_error(error: int) -> void:
+	lm("join_error: ", error)
 	close_game_peer()
 	me_left_lobby.emit("Failed to connect to lobby. Error code " + str(error))	
 
@@ -459,7 +471,11 @@ func player_ids() -> Array[int]:
 	for pid in multiplayer.get_peers(): if not ids.has(pid): ids.append(pid)
 	return ids
 
-func find_by_pid(pid: int) -> Dictionary:
+func player_count() -> int:
+	if not online(): return 0
+	return player_ids().size()
+
+func find_by_pid(pid: int):
 	if pid == 0: return me
 	return players.get(pid, null)
 
@@ -482,8 +498,10 @@ func is_me(p: Dictionary) -> bool: return p and me.id == p.id
 
 func _on_connection_succeeded():
 	lm("_on_connection_succeeded")
-	var pid = multiplayer_id()
+	# var pid = multiplayer_id()
 	me_connecting_to_lobby.emit()
+	# Tell the server who I am
+	sync_players()
 
 func _on_connection_failed(reason: String = ""):
 	lm("_on_connection_failed: ", reason)
@@ -502,6 +520,7 @@ func _on_remote_peer_connected(pid: int):
 	lm("_on_remote_peer_connected: ", pid)
 	if pid == SERVER_ID:
 		# I joined a server
+		lm(" - _on_remote_peer_connected: ", pid)
 		me_connecting_to_lobby.emit()
 	else:
 		assert(i_am_host(), JamminErrors.REMOTE_PEER_NOT_HOST)
@@ -513,8 +532,10 @@ func _on_remote_peer_disconnected(pid: int, reason: String = ""):
 	if pid == SERVER_ID: leave("Host disconnected")
 	var p = find_by_pid(pid)
 	if not p: return
-	if i_am_host() and not is_me(p): p.queue_free()
 	player_left_lobby.emit(p)
+	if i_am_host():
+		_host_players.erase(pid)
+		host_sync_all_players()
 
 func _on_peer_connected(pid: int):
 	lm("_on_peer_connected: ", pid)
