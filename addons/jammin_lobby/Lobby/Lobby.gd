@@ -344,7 +344,7 @@ func join_error(error: int) -> void:
 	me_left_lobby.emit("Failed to connect to lobby. Error code " + str(error))	
 
 # Leave the current server
-func leave(message: String):
+func leave(message: String = ""):
 	if not online(): return
 	if i_am_host(): return stop_hosting(message)
 	close_game_peer()
