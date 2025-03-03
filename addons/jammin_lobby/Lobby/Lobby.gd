@@ -71,7 +71,7 @@ var _host_players: Dictionary = {}
 
 # Local copy of my player data, which gets updated as you join/leave lobbies
 # Don't update this directly; use `Lobby.update_me({ ... })` instead
-var me: Dictionary = DEFAULT_PLAYER_DATA
+var me: Dictionary
 
 var options: JamminOptions = null:
 	get: return options_get({
@@ -87,6 +87,8 @@ var refreshing := false
 
 func _ready() -> void:
 	debug = true
+	me = {}
+	me.merge(DEFAULT_PLAYER_DATA, true)
 	setup_multiplayer()
 	setup_request()
 
@@ -297,7 +299,7 @@ func sync_all_players(updated_players: Dictionary):
 		if not is_new and not is_updated: continue
 		
 		# Update my data
-		if is_me: me = new_player
+		if is_me: me.merge(new_player, true)
 		
 		# someone else
 		if is_new:

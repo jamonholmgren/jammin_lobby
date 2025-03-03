@@ -3,8 +3,10 @@ class_name JamminLobbyUI extends JamminLobby
 func _ready() -> void:
   super()
   %CreateLobbyButton.pressed.connect(_on_create_lobby_pressed)
-  Lobby.hosting_started.connect(_on_hosting_started)
   %LeaveLobbyButton.pressed.connect(_on_leave_lobby_pressed)
+  %Username.text_changed.connect(_on_username_changed)
+
+  Lobby.hosting_started.connect(_on_hosting_started)
   Lobby.hosting_stopped.connect(_on_hosting_stopped)
   Lobby.me_connecting_to_lobby.connect(_on_me_connecting_to_lobby)
   Lobby.me_joined_lobby.connect(_on_me_joined_lobby)
@@ -25,6 +27,12 @@ func _on_hosting_started() -> void:
 
 func _on_leave_lobby_pressed() -> void:
   Lobby.leave()
+
+func _on_username_changed() -> void:
+  var new_username = %Username.text
+  if new_username.length() <= 0: return
+  Lobby.update_me({ username = new_username })
+  Lobby.sync_players()
 
 func _on_hosting_stopped(_msg: String = "") -> void:
   update_lobby_ui()
@@ -78,19 +86,23 @@ func update_lobby_ui() -> void:
   btn.text = "Ready" if Lobby.me.get("ready", false) else "Not Ready"
   Lobby.cs(btn, "pressed", _on_ready_pressed)
 
-  # Delete any existing rows past the first
+  # Delete any existing rows past the first (except for existing players)
   for child in %PlayerRows.get_children():
     if child == row: continue
+    var n_id = child.name.split("-")[1]
+    if int(n_id) in Lobby.player_ids(): continue # we'll reuse this row
     child.queue_free()
   
   # Other players
   for player in Lobby.players:
-    var new_row = row.duplicate()
+    var rowname = &"PlayerRow-" + str(player.id)
+    var new_row = %PlayerRows.get_node(rowname) if %PlayerRows.has_node(rowname) else row.duplicate()
+    new_row.name = rowname
     new_row.get_node("Name").text = player.name
     var b = new_row.get_node("ReadyButton")
     b.text = "Ready" if player.get("ready", false) else "Not Ready"
     b.disabled = true
-    %PlayerRows.add_child(new_row)
+    if not new_row.has_parent(): %PlayerRows.add_child(new_row)
 
 func show_create_lobby():
   %CreateLobby.show()
