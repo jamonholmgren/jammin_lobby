@@ -85,7 +85,7 @@ func find_index_by_key(array: Array[Variant], key: String, value: Variant) -> in
 func lm(m1: Variant, m2: Variant = "", m3: Variant = "", m4: Variant = "", m5: Variant = "", m6: Variant = "", m7: Variant = "", m8: Variant = "", m9: Variant = ""):
 	# if multiplayer and multiplayer.multiplayer_peer and multiplayer.get_unique_id() != Lobby.SERVER_ID: return null
 	if not debug: return null
-	var prelim = "H →" if Lobby.is_host() else "  →"
+	var prelim = "H →" if Lobby.i_am_host() else "  →"
 	print(prelim, (Lobby.me.username if Lobby.me else "Unknown") + ": ", m1, m2, m3, m4, m5, m6, m7, m8, m9)
 	return null
 

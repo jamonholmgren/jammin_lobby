@@ -21,10 +21,6 @@ signal player_updated(player: Dictionary)
 signal host_joining_lobby()
 signal host_joined_lobby()
 signal host_left_lobby(reason: String)
-signal host_player_joining_lobby(pid: int) # all we have is a pid, no player yet
-signal host_player_joined_lobby(player: Dictionary)
-signal host_player_left_lobby(player: Dictionary)
-signal host_player_updated(player: Dictionary)
 
 # Signals for the lobby
 signal hosting_started()
@@ -50,6 +46,12 @@ var chat_messages: Array[Dictionary] = []
 
 # Optional save slot to use for the local player, to allow multiple users.
 var save_slot: int = 1
+
+# Game name
+var game_name: String = ProjectSettings.get_setting("application/config/name")
+
+# Game version
+var game_version: String = ProjectSettings.get_setting("application/config/version")
 
 # State *************************************************************************
 
@@ -274,11 +276,9 @@ func sync_all_players(new_players: Dictionary):
 		# someone else
 		if is_new:
 			player_joined_lobby.emit(pid)
-			if is_host: host_player_joined_lobby.emit(pid)
 			if is_me: me_joined_lobby.emit(me)
 		elif is_updated:
 			player_updated.emit(new_player)
-			if is_host: host_player_updated.emit(new_player)
 			if is_me: me_updated.emit(me)
 			
 # Refresh the list of local servers
@@ -468,7 +468,6 @@ func _on_remote_peer_connected(pid: int):
 
 		# Someone else online to my server, is joining_lobby
 		player_joining_lobby.emit(pid)
-		if i_am_host(): host_player_joining_lobby.emit(pid)
 		lm("player_joining_lobby.emit: ", pid)
 
 func _on_remote_peer_disconnected(pid: int, reason: String = ""):
@@ -478,12 +477,10 @@ func _on_remote_peer_disconnected(pid: int, reason: String = ""):
 	if not p: return
 	if i_am_host() and not is_me(p): p.queue_free()
 	player_left_lobby.emit(p)
-	if i_am_host(): host_player_left_lobby.emit(p)
 
 func _on_peer_connected(pid: int):
 	lm("_on_peer_connected: ", pid)
 	player_joining_lobby.emit(pid)
-	if i_am_host(): host_player_joining_lobby.emit(pid)
 	lm("player_joining_lobby.emit: ", pid)
 	if i_am_host(): host_sync_all_players()
 
@@ -495,6 +492,5 @@ func _on_peer_disconnected(pid: int):
 	p.is_ready = false
 	if i_am_host() and not is_me(p): p.queue_free()
 	player_left_lobby.emit(p)
-	if i_am_host(): host_player_left_lobby.emit(p)
 
 # Endpoints ***************************************************************
