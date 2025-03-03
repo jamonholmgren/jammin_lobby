@@ -485,12 +485,27 @@ func multiplayer_id() -> int:
 	if not online(): return 0
 	return multiplayer.multiplayer_peer.get_unique_id()
 
+# Returns the status of the multiplayer peer (or a specific peer, if you don't give one)
+# Returns: "Offline", "Disconnected", "Connecting", "Connected", "Hosting"
+func status(peer: MultiplayerPeer = null) -> StringName:
+	if not peer and not multiplayer: return &"Offline"
+	if peer == null: peer = multiplayer.multiplayer_peer
+	if peer is not ENetMultiplayerPeer: return &"Offline"
+	if peer.get_connection_status() == MultiplayerPeer.CONNECTION_DISCONNECTED: return &"Disconnected"
+	if peer.get_connection_status() == MultiplayerPeer.CONNECTION_CONNECTING: return &"Connecting"
+	if peer.get_connection_status() == MultiplayerPeer.CONNECTION_CONNECTED:
+		# check if peer is server by checking if it has a host object
+		if peer.host: return &"Server"
+		if multiplayer and multiplayer.is_server(): return &"Hosting"
+		return &"Connected"
+	return &"Unknown"
+
 func sid() -> int: return multiplayer.get_remote_sender_id()
 
-func online() -> bool: return multiplayer and multiplayer.has_multiplayer_peer() and multiplayer.multiplayer_peer is ENetMultiplayerPeer and multiplayer.multiplayer_peer.get_connection_status() == MultiplayerPeer.CONNECTION_CONNECTED
+func online() -> bool: return status() == &"Connected" or status() == &"Hosting"
 func pid_in_lobby(pid: int) -> bool: return online() and (pid == SERVER_ID or multiplayer.get_peers().has(pid))
-func i_am_host() -> bool: return online() and multiplayer.is_server()
-func is_client() -> bool: return online() and not i_am_host()
+func i_am_host() -> bool: return status() == &"Hosting"
+func is_client() -> bool: return status() == &"Connected"
 func is_authority(node: Node) -> bool: return online() and node.is_multiplayer_authority()
 func is_me(p: Dictionary) -> bool: return p and me.id == p.id
 

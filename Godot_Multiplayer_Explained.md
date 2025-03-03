@@ -18,7 +18,9 @@ There's also a `multiplayer.multiplayer_peer` property. This is by default an [O
 ## OfflineMultiplayerPeer
 
 The OfflineMultiplayerPeer object has no `start_server` method, but always reports that it's
-a server if you run `multiplayer.is_server()`. It also says it's connected if you check
+a server if you run `multiplayer.is_server()`.
+
+It also says it's connected if you check
 `multiplayer.multiplayer_peer.get_connection_status()`.
 
 ## Stopping the server / leaving the server
@@ -44,6 +46,22 @@ multiplayer.multiplayer_peer = new OfflineMultiplayerPeer() # Do not set to null
 > a new OfflineMultiplayerPeer.
 
 ## Connection status
+
+Want to know if you're the server, or if you're connected to a server, or if you're offline?
+
+Here's the best way to do that (outside of using JamminLobby):
+
+```gdscript
+func online() -> bool:
+  if not multiplayer: return false
+  if multiplayer.multiplayer_peer is not ENetMultiplayerPeer: return false
+  return multiplayer.multiplayer_peer.get_connection_status() == MultiplayerPeer.CONNECTION_CONNECTED
+```
+
+> [!NOTE]
+> JamminLobby not only does this, but also provides signals for each of the
+> connection statuses. It also has status strings for each connection type:
+> `Lobby.status() # "Offline", "Connecting", "Connected", "Server"`
 
 ## Lifecycle Events
 
@@ -171,3 +189,10 @@ multiplayer.multiplayer_peer.create_server(port: int, max_players: int = 4)
 ```gdscript
 multiplayer.multiplayer_peer.create_client(ip: String, port: int)
 ```
+
+# Misc Notes
+
+These are hard-won lessons I've learned. Not very necessary for you -- just use JamminLobby.
+
+- Don't ask for `peer.host` prior to `create_server` or `create_client`. It will be null and it'll generate an error.
+-
