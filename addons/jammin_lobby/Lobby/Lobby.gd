@@ -227,7 +227,7 @@ func server_disconnect_peer(pid: int, reason: String = "") -> void:
 	p.queue_free()
 
 # Finds local ip addresses to tell clients to try to connect to if discovery fails
-func server_local_ips() -> Array: return NetworkUtils.get_local_ipv4_addresses()
+func get_ips() -> Array: return NetworkUtils.get_local_ipv4_addresses()
 
 # Discovery server ***********************************************************************
 
