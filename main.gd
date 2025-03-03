@@ -21,6 +21,9 @@ func _ready() -> void:
 	multiplayer.multiplayer_peer.peer_disconnected.connect(_mp_callback.bind("peer_disconnected"))
 
 	lg(str(multiplayer.get_unique_id()))
+	lg(str(multiplayer.multiplayer_peer.get_connection_status()))
+	multiplayer.multiplayer_peer = null
+	lg(str(get_multiplayer_authority()))
 
 	# var peer = ENetMultiplayerPeer.new()
 
