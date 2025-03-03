@@ -42,8 +42,11 @@ else:
 > [!NOTE]
 > JamminLobby handles this for you and provides two signals:
 >
-> - `Lobby.hosting_started()`
-> - `Lobby.hosting_failed(message: String)`
+> ```gdscript
+> Lobby.hosting_started.connect(func(): print("Hosting started"))
+> Lobby.hosting_failed.connect(func(message: String): print("Hosting failed: ", message))
+> Lobby.start_hosting()
+> ```
 
 ### `multiplayer.peer_connected`
 
