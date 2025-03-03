@@ -82,38 +82,37 @@ func setup_signals() -> void:
   # Pass through signals from the Lobby singleton
 
   # Make sure we're not connecting signals twice
-  if Lobby.me_joining_lobby.is_connected(_me_joining_lobby): return
+  if Lobby.me_joining_lobby.is_connected(me_joining_lobby.emit): return
 
   # Signals for the local player
-  Lobby.me_joining_lobby.connect(_me_joining_lobby)
-  Lobby.me_joined_lobby.connect(_me_joined_lobby)
-  Lobby.me_left_lobby.connect(_me_left_lobby)
-  Lobby.me_updated.connect(_me_updated)
+  Lobby.me_joining_lobby.connect(me_joining_lobby.emit)
+  Lobby.me_joined_lobby.connect(me_joined_lobby.emit)
+  Lobby.me_left_lobby.connect(me_left_lobby.emit)
+  Lobby.me_updated.connect(me_updated.emit)
 
   # Signals for other players
-  Lobby.player_joining_lobby.connect(_player_joining_lobby)
-  Lobby.player_joined_lobby.connect(_player_joined_lobby)
-  Lobby.player_left_lobby.connect(_player_left_lobby)
-  Lobby.player_updated.connect(_player_updated)
+  Lobby.player_joining_lobby.connect(player_joining_lobby.emit)
+  Lobby.player_joined_lobby.connect(player_joined_lobby.emit)
+  Lobby.player_left_lobby.connect(player_left_lobby.emit)
+  Lobby.player_updated.connect(player_updated.emit)
 
   # Signals for the host
-  Lobby.host_joining_lobby.connect(_host_joining_lobby)
-  Lobby.host_joined_lobby.connect(_host_joined_lobby)
-  Lobby.host_left_lobby.connect(_host_left_lobby)
+  Lobby.host_joining_lobby.connect(host_joining_lobby.emit)
+  Lobby.host_joined_lobby.connect(host_joined_lobby.emit)
+  Lobby.host_left_lobby.connect(host_left_lobby.emit)
 
   # Signals for the lobby
-  Lobby.hosting_started.connect(_hosting_started)
-  Lobby.hosting_failed.connect(_hosting_failed)
-  Lobby.hosting_stopped.connect(_hosting_stopped)
+  Lobby.hosting_started.connect(hosting_started.emit)
+  Lobby.hosting_failed.connect(hosting_failed.emit)
+  Lobby.hosting_stopped.connect(hosting_stopped.emit)
 
   # Signals for the discovery server
-  Lobby.discovery_server_started.connect(_discovery_server_started)
-  Lobby.discovery_server_failed.connect(_discovery_server_failed)
-  Lobby.discovery_server_stopped.connect(_discovery_server_stopped)
+  Lobby.discovery_server_started.connect(discovery_server_started.emit)
+  Lobby.discovery_server_failed.connect(discovery_server_failed.emit)
+  Lobby.discovery_server_stopped.connect(discovery_server_stopped.emit)
 
   # Signals for the chat messages
-  Lobby.chat_messages_updated.connect(_chat_messages_updated)
-
+  Lobby.chat_messages_updated.connect(chat_messages_updated.emit)
 
 func merge_config(config: JamminLobby) -> void:
   lobby_name = config.lobby_name
@@ -125,86 +124,3 @@ func merge_config(config: JamminLobby) -> void:
   autosave = config.autosave
   player_save_file = config.player_save_file
   options_save_file = config.options_save_file
-
-# Signal handlers **************************************************************
-
-func _me_joining_lobby() -> void:
-  me_joining_lobby.emit()
-  if visible: pass # TODO: update UI
-
-func _me_joined_lobby(player: Dictionary) -> void:
-  me_joined_lobby.emit(player)
-  if visible: pass # TODO: update UI
-
-func _me_left_lobby(reason: String) -> void:
-  me_left_lobby.emit(reason)
-  if visible: pass # TODO: update UI
-
-func _me_updated(player: Dictionary) -> void:
-  me_updated.emit(player)
-  if visible: pass # TODO: update UI
-
-func _player_joining_lobby(pid: int) -> void:
-  player_joining_lobby.emit(pid)
-  if visible: pass # TODO: update UI
-
-func _player_joined_lobby(player: Dictionary) -> void:
-  player_joined_lobby.emit(player)
-  if visible: pass # TODO: update UI
-
-func _player_left_lobby(player: Dictionary) -> void:
-  player_left_lobby.emit(player)
-  if visible: pass # TODO: update UI
-
-func _player_updated(player: Dictionary) -> void:
-  player_updated.emit(player)
-  if visible: pass # TODO: update UI
-
-func _host_joining_lobby() -> void:
-  host_joining_lobby.emit()
-  if visible: pass # TODO: update UI
-
-func _host_joined_lobby() -> void:
-  host_joined_lobby.emit()
-  if visible: pass # TODO: update UI
-
-func _host_left_lobby(reason: String) -> void:
-  host_left_lobby.emit(reason)
-  if visible: pass # TODO: update UI
-
-func _host_player_joining_lobby(pid: int) -> void:
-  host_player_joining_lobby.emit(pid)
-  if visible: pass # TODO: update UI
-
-func _host_player_joined_lobby(player: Dictionary) -> void:
-  host_player_joined_lobby.emit(player)
-  if visible: pass # TODO: update UI
-
-func _hosting_started() -> void:
-  hosting_started.emit()
-  if visible: pass # TODO: update UI
-
-func _hosting_failed(message: String) -> void:
-  hosting_failed.emit(message)
-  if visible: pass # TODO: update UI
-
-func _hosting_stopped(message: String) -> void:
-  hosting_stopped.emit(message)
-  if visible: pass # TODO: update UI
-
-func _discovery_server_started() -> void:
-  discovery_server_started.emit()
-  if visible: pass # TODO: update UI
-
-func _discovery_server_failed(error: int) -> void:
-  discovery_server_failed.emit(error)
-  if visible: pass # TODO: update UI
-
-func _discovery_server_stopped() -> void:
-  discovery_server_stopped.emit()
-  if visible: pass # TODO: update UI
-
-func _chat_messages_updated() -> void:
-  chat_messages_updated.emit()
-  if visible: pass # TODO: update UI
-
