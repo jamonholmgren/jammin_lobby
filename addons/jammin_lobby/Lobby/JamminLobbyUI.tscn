@@ -44,9 +44,17 @@ theme_override_constants/separation = 20
 
 [node name="LobbyTitle" type="Label" parent="MarginContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer2"]
 layout_mode = 2
-size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 32
 text = "Multiplayer Lobby"
+
+[node name="RefreshButton" type="Button" parent="MarginContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer2"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Refresh"
+
+[node name="Control" type="Control" parent="MarginContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer2"]
+layout_mode = 2
+size_flags_horizontal = 3
 
 [node name="Label" type="Label" parent="MarginContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer2"]
 layout_mode = 2
@@ -76,34 +84,67 @@ theme_override_constants/margin_top = 20
 theme_override_constants/margin_right = 20
 theme_override_constants/margin_bottom = 20
 
-[node name="GridContainer" type="GridContainer" parent="MarginContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/MarginContainer2"]
+[node name="LobbiesGrid" type="GridContainer" parent="MarginContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/MarginContainer2"]
+unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 columns = 4
 
-[node name="Label" type="Label" parent="MarginContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/MarginContainer2/GridContainer"]
+[node name="Label" type="Label" parent="MarginContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/MarginContainer2/LobbiesGrid"]
 layout_mode = 2
 size_flags_horizontal = 3
+tooltip_text = "Header0"
 theme_override_font_sizes/font_size = 25
 text = "Game"
 
-[node name="Label4" type="Label" parent="MarginContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/MarginContainer2/GridContainer"]
+[node name="Label4" type="Label" parent="MarginContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/MarginContainer2/LobbiesGrid"]
 layout_mode = 2
 size_flags_horizontal = 3
+tooltip_text = "Header1"
 theme_override_font_sizes/font_size = 25
 text = "Version"
 
-[node name="Label2" type="Label" parent="MarginContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/MarginContainer2/GridContainer"]
+[node name="Label2" type="Label" parent="MarginContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/MarginContainer2/LobbiesGrid"]
 layout_mode = 2
 size_flags_horizontal = 3
+tooltip_text = "Header2"
 theme_override_font_sizes/font_size = 25
 text = "Players"
 
-[node name="Label3" type="Label" parent="MarginContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/MarginContainer2/GridContainer"]
+[node name="Label3" type="Label" parent="MarginContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/MarginContainer2/LobbiesGrid"]
 layout_mode = 2
 size_flags_horizontal = 3
+tooltip_text = "Header3"
 theme_override_font_sizes/font_size = 25
 text = "Ping"
+
+[node name="Label5" type="Label" parent="MarginContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/MarginContainer2/LobbiesGrid"]
+layout_mode = 2
+size_flags_horizontal = 3
+tooltip_text = "Template0"
+theme_override_font_sizes/font_size = 20
+text = "Jammin Tanks"
+
+[node name="Label6" type="Label" parent="MarginContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/MarginContainer2/LobbiesGrid"]
+layout_mode = 2
+size_flags_horizontal = 3
+tooltip_text = "Template1"
+theme_override_font_sizes/font_size = 20
+text = "v0.2.4"
+
+[node name="Label7" type="Label" parent="MarginContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/MarginContainer2/LobbiesGrid"]
+layout_mode = 2
+size_flags_horizontal = 3
+tooltip_text = "Template2"
+theme_override_font_sizes/font_size = 20
+text = "4/8"
+
+[node name="Label8" type="Label" parent="MarginContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/MarginContainer2/LobbiesGrid"]
+layout_mode = 2
+size_flags_horizontal = 3
+tooltip_text = "Template3"
+theme_override_font_sizes/font_size = 20
+text = "4ms"
 
 [node name="VSeparator" type="VSeparator" parent="MarginContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer"]
 layout_mode = 2

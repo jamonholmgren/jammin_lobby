@@ -174,8 +174,9 @@ func _update_control_value(raw_value: Variant, option_name: String):
 
 func trigger_callback(cb: Callable, option_name: String, value: Variant):
 	if not cb is Callable: return
-	if cb.get_argument_count() == 0: cb.call()
-	elif cb.get_argument_count() == 1: cb.call(value)
+	var arity = cb.get_argument_count()
+	if arity == 0: cb.call()
+	elif arity == 1: cb.call(value)
 	else: cb.call(option_name, value)
 
 func _get_control_value(option_name: String) -> Variant:
