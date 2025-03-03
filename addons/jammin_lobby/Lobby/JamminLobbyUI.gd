@@ -79,19 +79,9 @@ func update_lobby_ui() -> void:
 	%LobbyInfo.show()
 
 	var players = Lobby.players.values()
+	var lobbies = Lobby.found_lobbies.values()
 	JamminList.update_list(%PlayerRows, players, false, update_player_row)
-	
-	var fake_lobbies = [
-		{"name": "Lobby 1", "players": 2, "host": "Player 1"},
-		{"name": "Lobby 2", "players": 3, "host": "Player 2"},
-		{"name": "Lobby 3", "players": 4, "host": "Player 3"},
-		{"name": "Lobby 4", "players": 4, "host": "Player 4"},
-		{"name": "Lobby 5", "players": 4, "host": "Player 5"},
-		{"name": "Lobby 6", "players": 4, "host": "Player 6"},
-		{"name": "Lobby 7", "players": 4, "host": "Player 7"},
-		{"name": "Lobby 8", "players": 4, "host": "Player 8"},
-	]
-	JamminList.update_grid(%LobbiesGrid, fake_lobbies, true, update_lobby_row)
+	JamminList.update_grid(%LobbiesGrid, lobbies, true, update_lobby_row)
 
 func update_player_row(node: Node, player: Dictionary, i: int) -> void:
 	var btn = node.get_node("ReadyButton")

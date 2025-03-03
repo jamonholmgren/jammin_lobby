@@ -57,12 +57,15 @@ static func update_grid(grid: GridContainer, items: Array[Variant], header: bool
 
 	for i in range(max(n_rows, n_items)):
 		var item: Variant = items[i] if i < n_items else null
-
+		
 		# Get all the nodes for this row
 		var row_nodes: Array[Node] = []
 		for c in range(cols):
 			var o := (i * cols) + c # offset index
 			
+			# Show/hide the node based on whether the item is null
+			grid_nodes[o].visible = item != null
+
 			if i == 0: template_row.append(grid_nodes[c]) # Fill up the template row
 			elif i >= n_items: row_nodes[o].queue_free(); continue # Delete extra nodes
 
@@ -73,6 +76,7 @@ static func update_grid(grid: GridContainer, items: Array[Variant], header: bool
 
 			row_nodes.append(node)
 
+		if not item: continue
 		if arity == 3: update_func.call(row_nodes, item, i)
 		elif arity == 2: update_func.call(row_nodes, item)
 
