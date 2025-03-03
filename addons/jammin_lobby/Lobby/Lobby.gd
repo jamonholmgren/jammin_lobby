@@ -497,6 +497,10 @@ func status(peer: MultiplayerPeer = null) -> StringName:
 		# check if peer is server by checking if it has a host object
 		# if multiplayer and multiplayer.multiplayer_peer and multiplayer.multiplayer_peer == peer and multiplayer.is_server(): return &"Hosting"
 		print(" xxx ", peer.host.get_peers())
+		var peers = peer.host.get_peers()
+		if peers.size() > 0:
+			for p in peers:
+				print("   xxx - ", p)
 		# if peer.host and peer.host.get_peers().has(id()): return &"Server"
 		return &"Connected"
 	return &"Unknown"
