@@ -94,8 +94,9 @@ func _ready() -> void:
 	# setup_request()
 
 func _process(_delta) -> void:
-	if not discovery_server.is_bound(): set_process(false); return
-	check_for_clients_discovery()
+	# if not discovery_server.is_bound(): set_process(false); return
+	# check_for_clients_discovery()
+	pass
 
 func _exit_tree():
 	leave("Lobby is exiting the tree, leaving")
