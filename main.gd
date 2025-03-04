@@ -27,10 +27,15 @@ func _ready() -> void:
 		create_server(12345)
 
 func create_server(port: int) -> void:
+	multiplayer.set_auth_callback(func(_peer_id: int, _secret: String) -> bool:
+		return true
+	)
+	
 	var peer := ENetMultiplayerPeer.new()
 
 	peer.peer_connected.connect(_mp_callback.bind("@server: peer_connected"))
 	peer.peer_disconnected.connect(_mp_callback.bind("@server: peer_disconnected"))
+
 
 	# I'll run the server on macos and connect to it from my windows machine manually.
 	var err = peer.create_server(port, 8)

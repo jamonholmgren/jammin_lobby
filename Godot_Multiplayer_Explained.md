@@ -102,9 +102,29 @@ else:
 
 #### When a client connects
 
-When a client connects, you'll get signals from several places:
+When a client connects, you'll get signals from two places -- the main multiplayer object and your multiplayer peer object:
 
-### Connecting to a server
+`multiplayer.peer_connected(peer_id)`
+
+This will fire with the new peer's id.
+
+`multiplayer.multiplayer_peer.peer_connected(peer_id)`
+
+This will fire with the new peer's id.
+
+#### When a client disconnects
+
+`multiplayer.peer_disconnected(peer_id)`
+
+This will fire with the peer's id.
+
+`multiplayer.multiplayer_peer.peer_disconnected(peer_id)`
+
+This will fire with the peer's id.
+
+---
+
+### Connecting to a server as a client
 
 Like starting a server, there are no signals when you try to connect to a server. Instead, there are two things to do:
 
@@ -136,6 +156,41 @@ multiplayer.multiplayer_peer = peer
 > Lobby.i_failed_to_join_lobby.connect(func(message: String): print("Failed to join lobby: ", message))
 > Lobby.join({ "ip": "127.0.0.1", "port": 1234 })
 > ```
+
+#### When the connection fails
+
+(after about 30 seconds)
+
+- `multiplayer.connection_failed()` - this will fire with no arguments
+
+(As far as I can tell, there's no `peer` signal on failure, just the main multiplayer object.)
+
+#### When the connection succeeds
+
+`multiplayer.connected_to_server()` - this will fire when you successfully connect to the server -- no arguments provided
+
+`multiplayer.multiplayer_peer.peer_connected(peer_id)` - this will fire _once_ with the server ID, which is 1
+
+`multiplayer.peer_connected(peer_id)` - this will fire _for every single peer_ that is connected to the server, including the server itself (but not you):
+
+```gdscript
+multiplayer.peer_connected.connect(func(pid: int): print(pid))
+1
+1533334359
+1364819277
+```
+
+#### When a different peer disconnects
+
+`multiplayer.peer_disconnected(peer_id)`
+
+This will fire with the other peer's id on your client.
+
+---
+
+---
+
+---
 
 ### `multiplayer.peer_connected`
 
