@@ -100,6 +100,10 @@ else:
 > Lobby.start_hosting()
 > ```
 
+#### When a client connects
+
+When a client connects, you'll get signals from several places:
+
 ### Connecting to a server
 
 Like starting a server, there are no signals when you try to connect to a server. Instead, there are two things to do:

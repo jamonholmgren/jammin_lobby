@@ -37,7 +37,7 @@ func create_server(port: int) -> void:
 	if err != OK:
 		lg("🔴 ERROR: " + str(err))
 	else:
-		lg(str(peer.get_unique_id()))
+		lg("Created server with id: " + str(peer.get_unique_id()))
 	
 	multiplayer.multiplayer_peer = peer
 
