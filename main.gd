@@ -28,6 +28,7 @@ func _ready() -> void:
 
 func create_server(port: int) -> void:
 	multiplayer.set_auth_callback(func(_peer_id: int, secret: String) -> bool:
+		lg("auth callback: " + str(_peer_id) + " " + secret)
 		return secret == "hello"
 	)
 	
@@ -63,7 +64,6 @@ func _mp_callback(first: Variant, a: Variant = null, b: Variant = null, c: Varia
 	var pid = multiplayer.get_unique_id() if Lobby.online() else 0
 	var sid = multiplayer.get_remote_sender_id()
 	lg("pid: " + str(pid) + "; sid: " + str(sid) + "; " + str(first) + "; " + str(a) + "; " + str(b) + "; " + str(c) + "; " + str(d))
-
 
 func lg(message: String) -> void:
 	match Lobby.status():

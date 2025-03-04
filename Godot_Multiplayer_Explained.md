@@ -105,10 +105,24 @@ else:
 If you want an authentication callback, you can set it like this:
 
 ```gdscript
-multiplayer.set_auth_callback(func(_peer_id: int, _secret: String) -> bool:
+multiplayer.set_auth_timeout(10.0) # seconds
+multiplayer.set_auth_callback(func(peer_id: int, secret: String) -> bool:
   # do something to authenticate the peer
-  return true
+  if secret == "Jamon":
+    multiplayer.complete_auth(peer_id)
+    return true
+  # No soup for you!
+  return false
 )
+multiplayer.peer_authenticating.connect(func(peer_id: int):
+  print("Peer authenticating: ", peer_id)
+  # also see all other authenticating peers
+  print(multiplayer.get_authenticating_peers())
+)
+multiplayer.peer_authentication_failed.connect(func(peer_id: int, message: String):
+  print("Peer authentication failed: ", peer_id, message)
+)
+
 ```
 
 The client would need to send the secret to the server as soon as it connects:
