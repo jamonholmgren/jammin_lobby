@@ -25,7 +25,6 @@ func _ready() -> void:
 	update_lobby_ui()
 
 func _on_create_lobby_pressed() -> void:
-	Lobby.update_me({ username = "Player " + str(randi() % 1000) })
 	Lobby.start_hosting()
 
 func _on_hosting_started() -> void:

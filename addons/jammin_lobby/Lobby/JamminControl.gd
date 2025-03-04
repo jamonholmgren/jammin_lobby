@@ -85,35 +85,29 @@ func _connect_signals():
 	value_changed.connect(_save_value)
 	
 	# Connect to the control's signal for changes
+	print("control_signal: ", control_signal)
 	if control_signal and control.has_signal(control_signal):
 		control.connect(control_signal, _on_control_changed)
 	
 	# Connect to Options.updated for external changes
 	if not is_player_specific:
+		print("connecting to options changes")
 		Options.updated.connect(_on_option_changed)
 	else:
 		# Connect to player data changes
+		print("connecting to player data changes")
 		Lobby.me_updated.connect(_on_player_changed)
 
 func _load_saved_value():
-	var saved_value
+	var saved_value = default_value
 	
 	var options = Options.data
 	if is_player_specific: options = Lobby.me
-
-	print("Player specific? ", is_player_specific)
-	print("options: ", options)
-
-	if options.has(option_name):
-		saved_value = options[option_name]
-	else:
-		saved_value = default_value
+	if options.has(option_name): saved_value = options[option_name]
 
 	set_value(saved_value)
 
 func _save_value(key: String, value: Variant):
-	print("Saving value: ", option_name, " = ", value)
-		
 	if is_player_specific:
 		# Create a dictionary with just this option and update the player
 		Lobby.update_me({ option_name: value })
@@ -127,10 +121,12 @@ func _on_control_changed(arg1 = null, arg2 = null, arg3 = null):
 	value_changed.emit(option_name, value)
 
 func _on_option_changed(key: String, value: Variant):
+	print("option changed: ", key, " = ", value)
 	if key == option_name:
 		set_value(value)
 
 func _on_player_changed(player: Dictionary):
+	print("player changed: ", player)
 	if option_name in player: set_value(player[option_name])
 
 func set_value(value: Variant):
@@ -141,7 +137,7 @@ func set_value(value: Variant):
 	value = _convert_value_type(value)
 	
 	# Set the control's value
-	control.set(control_value_property, value)
+	set_control_value(value)
 
 func get_value() -> Variant:
 	if not control_value_property: return null
@@ -160,3 +156,16 @@ func _convert_value_type(value: Variant) -> Variant:
 			return value
 	return value
 
+func set_control_value(value: Variant):
+	if control_value_property != "": control.set(control_value_property, value); return
+
+	# Handle specific control types
+	if control is LineEdit: control.text = str(value); return
+	if control is TextEdit: control.text = str(value); return
+	if control is SpinBox: control.value = float(value); return
+	if control is Slider: control.value = float(value); return
+	if control is OptionButton: control.selected = int(value); return
+	if control is ColorPicker: control.color = value; return
+	if control is ColorPickerButton: control.color = value; return
+
+	push_error("Unsupported control type: ", control.get_class())

@@ -216,6 +216,7 @@ func update_me(data: Dictionary):
 
 	me.merge(data, true)
 	Options.set("player-" + str(save_slot), me)
+	me_updated.emit(me)
 	sync_players()
 
 func sync_players():
@@ -341,6 +342,8 @@ func sync_all_players(updated_players: Dictionary):
 		
 		# No change? skip
 		if not is_new and not is_updated: continue
+
+		print(pid, "is_new: ", is_new, " is_updated: ", is_updated, " is_me: ", is_me, " is_host: ", is_host)
 		
 		# Update my data
 		if is_me: update_me(new_player)
