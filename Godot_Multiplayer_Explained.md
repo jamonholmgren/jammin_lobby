@@ -100,6 +100,39 @@ else:
 > Lobby.start_hosting()
 > ```
 
+### Connecting to a server
+
+Like starting a server, there are no signals when you try to connect to a server. Instead, there are two things to do:
+
+1. Check the return value of `your_peer.create_client(ip, port)`
+2. Watch for the other signals that fire when you connect to a server, such as:
+   - `multiplayer.connected_to_server`
+   - `multiplayer.connection_failed`
+
+```gdscript
+# Set up the signals on the main multiplayer object
+multiplayer.connected_to_server.connect(func(): print("Connected to server"))
+multiplayer.connection_failed.connect(func(message: String): print("Connection failed: ", message))
+
+# Now connect to the server
+var peer = ENetMultiplayer.new()
+var error = peer.create_client("127.0.0.1", 1234)
+if error != OK: print("Failed to create connection")
+else: print("Connecting to server...")
+
+# Set the multiplayer peer to the new peer
+multiplayer.multiplayer_peer = peer
+```
+
+> [!NOTE]
+> JamminLobby handles this for you and provides signals.
+>
+> ```gdscript
+> Lobby.i_joined_lobby.connect(func(): print("Joined lobby"))
+> Lobby.i_failed_to_join_lobby.connect(func(message: String): print("Failed to join lobby: ", message))
+> Lobby.join({ "ip": "127.0.0.1", "port": 1234 })
+> ```
+
 ### `multiplayer.peer_connected`
 
 **From the server's perspective:**

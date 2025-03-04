@@ -43,7 +43,12 @@ func create_server(port: int) -> void:
 
 func create_client(ip: String, port: int) -> void:
 	var client = ENetMultiplayerPeer.new()
-	client.create_client(ip, port)
+	var err = client.create_client(ip, port)
+	if err != OK:
+		lg("🔴 ERROR: " + str(err))
+	else:
+		lg("🟢 Connecting to server at " + ip + ":" + str(port))
+
 	client.peer_connected.connect(_mp_callback.bind("@client: peer_connected"))
 	client.peer_disconnected.connect(_mp_callback.bind("@client: peer_disconnected"))
 
