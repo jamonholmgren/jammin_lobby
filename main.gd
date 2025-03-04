@@ -28,8 +28,8 @@ func _ready() -> void:
 
 func create_server(port: int) -> void:
 	multiplayer.set_auth_callback(func(_peer_id: int, secret: String) -> bool:
-		lg("auth callback: " + str(_peer_id) + " " + secret)
-		return secret == "hello"
+		lg("server auth callback: " + str(_peer_id) + " " + secret)
+		return secret == "Jamon"
 	)
 	
 	var peer := ENetMultiplayerPeer.new()
@@ -48,6 +48,10 @@ func create_server(port: int) -> void:
 
 func create_client(ip: String, port: int) -> void:
 	var client = ENetMultiplayerPeer.new()
+	multiplayer.set_auth_callback(func(_peer_id: int, secret: String) -> bool:
+		lg("client auth callback: " + str(_peer_id) + " " + secret)
+		return secret == "Jamon"
+	)
 	var err = client.create_client(ip, port)
 	if err != OK:
 		lg("🔴 ERROR: " + str(err))
