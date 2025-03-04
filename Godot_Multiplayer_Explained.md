@@ -102,35 +102,34 @@ else:
 
 #### Authenticating
 
-If you want an authentication callback, you can set it like this:
+If you want to authenticate clients, you can add a callback.
 
 ```gdscript
-multiplayer.set_auth_timeout(10.0) # seconds
-multiplayer.set_auth_callback(func(peer_id: int, secret: String) -> bool:
-  # do something to authenticate the peer
-  if secret == "Jamon":
-    multiplayer.complete_auth(peer_id)
-    return true
-  # No soup for you!
-  return false
-)
+# If you only want the server to authenticate clients, add this `if` condition.
+# Otherwise, every client will authenticate each other, including the server itself.
+# Which ... you might want, but you might not. This is the normal behavior below.
+if multiplayer.is_server():
+  multiplayer.set_auth_timeout(10.0) # seconds
+  multiplayer.set_auth_callback(func(peer_id: int, secret: String):
+    # do something to authenticate the peer?
+    if secret == "Jamon": multiplayer.complete_auth(peer_id)
+  )
+
+# On the client side, add this listener to `peer_authenticating`:
 multiplayer.peer_authenticating.connect(func(peer_id: int):
-  print("Peer authenticating: ", peer_id)
-  # also see all other authenticating peers
-  print(multiplayer.get_authenticating_peers())
+  var my_secret = "Jamon"
+  multiplayer.send_auth(peer_id, my_secret.to_utf8_buffer())
 )
 multiplayer.peer_authentication_failed.connect(func(peer_id: int, message: String):
   print("Peer authentication failed: ", peer_id, message)
 )
-
 ```
 
-The client would need to send the secret to the server as soon as it connects:
-
-```gdscript
-multiplayer.
-multiplayer.multiplayer_peer.put_packet(secret.to_utf8_buffer())
-```
+> [!NOTE]
+> JamminLobby doesn't currently support authentication, but you can enhance it in
+> code relatively easily by adding the above code before you start the lobby or try to join one.
+> If you want to add this functionality, send in a PR! Make sure the API is good, though.
+> I can't stand the built-in one.
 
 #### When a client connects
 
