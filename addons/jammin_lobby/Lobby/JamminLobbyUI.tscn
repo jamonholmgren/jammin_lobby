@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3 uid="uid://bdv22q10r4trl"]
+[gd_scene load_steps=3 format=3 uid="uid://bdv22q10r4trl"]
 
 [ext_resource type="Script" path="res://addons/jammin_lobby/Lobby/JamminLobbyUI.gd" id="1_0kqi4"]
+[ext_resource type="Script" path="res://addons/jammin_lobby/Lobby/JamminControl.gd" id="2_02mob"]
 
 [node name="JamminLobbyUI" type="Control"]
 layout_mode = 3
@@ -55,13 +56,23 @@ text = "Refresh"
 [node name="Control" type="Control" parent="MarginContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer2"]
 layout_mode = 2
 size_flags_horizontal = 3
+size_flags_stretch_ratio = 2.0
 
-[node name="Label" type="Label" parent="MarginContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer2"]
+[node name="JamminOptionControl" type="HBoxContainer" parent="MarginContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer2" node_paths=PackedStringArray("control")]
+layout_mode = 2
+theme_override_constants/separation = 20
+script = ExtResource("2_02mob")
+option_name = "username"
+default_value = "Jammin"
+is_player_specific = true
+control = NodePath("Username")
+
+[node name="Label" type="Label" parent="MarginContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer2/JamminOptionControl"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 22
 text = "Your Name"
 
-[node name="Username" type="TextEdit" parent="MarginContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer2"]
+[node name="Username" type="TextEdit" parent="MarginContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer2/JamminOptionControl"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
@@ -233,6 +244,7 @@ text = "Ready"
 
 [node name="JoiningOverlay" type="Panel" parent="MarginContainer"]
 unique_name_in_owner = true
+visible = false
 custom_minimum_size = Vector2(400, 100)
 layout_mode = 2
 

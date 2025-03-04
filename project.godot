@@ -19,6 +19,7 @@ config/icon="res://icon.svg"
 [autoload]
 
 Lobby="*res://addons/jammin_lobby/Lobby/Lobby.gd"
+Options="*res://addons/jammin_lobby/Lobby/Options.gd"
 
 [display]
 

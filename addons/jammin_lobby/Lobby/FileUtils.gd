@@ -1,13 +1,22 @@
 class_name FileUtils
 
 # Serialization utilities
-func to_dict(obj: Object, props: Array[String]) -> Dictionary:
+static func to_dict(obj: Object, props: Array[String]) -> Dictionary:
 	var dict = {}
 	for p in props: dict[p] = obj[p]
 	return dict
 
+static func is_eq(a: Dictionary, b: Dictionary) -> bool:
+	var a_keys = a.keys()
+	var b_keys = b.keys()
+	a_keys.sort()
+	b_keys.sort()
+	if a_keys.size() != b_keys.size(): return false
+	for k in a_keys: if a[k] != b[k]: return false
+	return true
+
 # File utilities
-func save_json(path: String, data: Dictionary) -> Error:
+static func save_json(path: String, data: Dictionary) -> Error:
 	var serialized = JSON.stringify(data)
 	var file = FileAccess.open(path, FileAccess.WRITE)
 	if not file: return FileAccess.get_open_error()
@@ -15,7 +24,7 @@ func save_json(path: String, data: Dictionary) -> Error:
 	file.close()
 	return OK
 
-func load_json(path: String) -> Dictionary:
+static func load_json(path: String) -> Dictionary:
 	var file = FileAccess.open(path, FileAccess.READ)
 	if not file: return {}
 	var serialized = file.get_as_text()
@@ -27,10 +36,10 @@ func load_json(path: String) -> Dictionary:
 		return {}
 	return json.data
 
-func file_exists(path: String) -> bool:
+static func file_exists(path: String) -> bool:
 	return FileAccess.file_exists(path)
 
-func copy_file(src: String, dst: String) -> Error:
+static func copy_file(src: String, dst: String) -> Error:
 	var file_exists = FileAccess.file_exists(src)
 	if not file_exists: return FileAccess.get_open_error()
 	var dir = DirAccess.open(src.get_base_dir())

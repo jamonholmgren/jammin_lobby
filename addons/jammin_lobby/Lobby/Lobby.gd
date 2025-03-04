@@ -74,13 +74,6 @@ var _host_players: Dictionary = {}
 # Don't update this directly; use `Lobby.update_me({ ... })` instead
 var me: Dictionary
 
-var options: JamminOptions = null:
-	get: return options_get({
-		"save_file": config.options_save_file,
-		"backup_file": config.options_save_file + ".backup.json",
-		"restore": true
-	})
-
 var found_lobbies: Dictionary = {}
 var refreshing := false
 
@@ -90,6 +83,14 @@ func _ready() -> void:
 	debug = true
 	me = {}
 	me.merge(DEFAULT_PLAYER_DATA, true)
+	Options.restore()
+	if Options.data.has("player-" + str(save_slot)):
+		var restored_data = Options.data["player-" + str(save_slot)]
+		var restored_data_keys = restored_data.keys()
+		restored_data_keys.sort()
+		for key in restored_data_keys:
+			me[key] = restored_data[key]
+
 	setup_multiplayer()
 	setup_request()
 
@@ -167,8 +168,6 @@ func configure(settings: Dictionary):
 	if settings.has("player_scene"): config.player_scene = settings.player_scene
 	if settings.has("autosave"): config.autosave = settings.autosave
 	if settings.has("save_slot"): save_slot = settings.save_slot
-	if settings.has("player_save_file"): config.player_save_file = settings.player_save_file
-	if settings.has("options_save_file"): config.options_save_file = settings.options_save_file
 	# if settings.has("proxy_url"): proxy.proxy_url = settings.proxy_url
 
 func start_hosting(settings: Dictionary = {}):
@@ -212,7 +211,11 @@ func start_server() -> void:
 	sync_players()
 
 func update_me(data: Dictionary):
+	# Has anything changed?
+	if FileUtils.is_eq(me, data): return
+
 	me.merge(data, true)
+	Options.set("player-" + str(save_slot), me)
 	sync_players()
 
 func sync_players():
@@ -224,13 +227,15 @@ func update_player_data(player: Dictionary):
 	if not i_am_host(): return
 	var pid = sid()
 	if not _host_players.has(pid): _host_players[pid] = {}
+	
 	# No change? skip
-	if _host_players[pid].hash() == player.hash(): return
+	if FileUtils.is_eq(_host_players[pid], player): return
+	
 	# Merge the new data
 	_host_players[pid].merge(player, true)
 	_host_players[pid].id = pid
+	
 	# Sync to all _host_players
-
 	host_sync_all_players()
 
 func start_server_failed(error: int) -> void:
@@ -338,7 +343,7 @@ func sync_all_players(updated_players: Dictionary):
 		if not is_new and not is_updated: continue
 		
 		# Update my data
-		if is_me: me.merge(new_player, true)
+		if is_me: update_me(new_player)
 		
 		# someone else
 		if is_new:
