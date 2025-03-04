@@ -41,14 +41,15 @@ func _on_username_changed() -> void:
 
 func _on_refresh_pressed() -> void:
 	Lobby.find_lobbies()
+	%RefreshButton.text = "Refreshing..."
+	%RefreshButton.disabled = true
 
 func _on_lobbies_refreshed(lobbies: Dictionary, error: String = "") -> void:
+	%RefreshButton.disabled = false
 	if error:
 		%RefreshButton.text = "Error: " + error
-		%RefreshButton.disabled = false
 	else:
-		%RefreshButton.text = "Refresh " + str(Lobby.found_lobbies.size())
-		%RefreshButton.disabled = false
+		%RefreshButton.text = "Refresh"
 	
 	update_lobby_ui()
 
@@ -140,5 +141,5 @@ func _on_ready_pressed() -> void:
 
 func _on_lobby_clicked(event: InputEvent, lobby: Dictionary) -> void:
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
-		# %JoiningOverlay.show()
+		%JoiningOverlay.show()
 		Lobby.join(lobby)

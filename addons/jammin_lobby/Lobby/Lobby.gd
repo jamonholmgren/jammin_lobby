@@ -86,19 +86,19 @@ var refreshing := false
 
 # Lifecycle ***********************************************************************
 
-# func _ready() -> void:
-# 	debug = true
-# 	me = {}
-# 	me.merge(DEFAULT_PLAYER_DATA, true)
-# 	setup_multiplayer()
-# 	setup_request()
+func _ready() -> void:
+	debug = true
+	me = {}
+	me.merge(DEFAULT_PLAYER_DATA, true)
+	setup_multiplayer()
+	setup_request()
 
-# func _process(_delta) -> void:
-# 	if not discovery_server.is_bound(): set_process(false); return
-# 	check_for_clients_discovery()
+func _process(_delta) -> void:
+	if not discovery_server.is_bound(): set_process(false); return
+	check_for_clients_discovery()
 
-# func _exit_tree():
-# 	leave("Lobby is exiting the tree, leaving")
+func _exit_tree():
+	leave("Lobby is exiting the tree, leaving")
 
 func setup_multiplayer():
 	lm("Lobby: _ready")
@@ -120,11 +120,6 @@ func setup_multiplayer():
 	# This fires for every single peer that disconnects
 	cs(multiplayer, "peer_disconnected", _on_any_peer_disconnected)
 
-	# peer_connected
-	# peer_disconnected
-	# server_disconnected
-	# connected_to_server
-	# connection_failed
 	# peer_packet
 	# peer_authenticating
 	# peer_authentication_failed
@@ -189,6 +184,11 @@ func stop_hosting(msg: String = "Game ended by host"):
 	stop_server("Game ended by host; " + msg)	
 
 func close_game_peer():
+	assert(multiplayer, "No multiplayer available!")
+	
+	if multiplayer.multiplayer_peer and multiplayer.multiplayer_peer is ENetMultiplayerPeer:
+		multiplayer.multiplayer_peer.close()
+
 	# We set to OfflineMultiplayerPeer rather than to null.
 	# This prevents errors like "No multiplayer peer is assigned"
 	# that happen when you access things like get_multiplayer_authority()
