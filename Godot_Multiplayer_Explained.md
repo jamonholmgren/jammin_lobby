@@ -77,7 +77,7 @@ func online() -> bool:
 - multiplayer.multiplayer_peer.peer_connected
 - multiplayer.multiplayer_peer.peer_disconnected
 
-### Starting a server
+### Starting a server as the host
 
 There are _no signals_ when you start a server successfully. Instead, you have to use `your_peer.create_server(port, max_players)` and then check if it succeeded.
 
@@ -99,6 +99,24 @@ else:
 > Lobby.hosting_failed.connect(func(message: String): print("Hosting failed: ", message))
 > Lobby.start_hosting()
 > ```
+
+#### Authenticating
+
+If you want an authentication callback, you can set it like this:
+
+```gdscript
+multiplayer.set_auth_callback(func(_peer_id: int, _secret: String) -> bool:
+  # do something to authenticate the peer
+  return true
+)
+```
+
+The client would need to send the secret to the server as soon as it connects:
+
+```gdscript
+multiplayer.
+multiplayer.multiplayer_peer.put_packet(secret.to_utf8_buffer())
+```
 
 #### When a client connects
 
@@ -185,6 +203,16 @@ multiplayer.peer_connected.connect(func(pid: int): print(pid))
 `multiplayer.peer_disconnected(peer_id)`
 
 This will fire with the other peer's id on your client.
+
+#### When the server disconnects
+
+`multiplayer.server_disconnected()`
+
+This will fire with no arguments.
+
+`multiplayer.multiplayer_peer.peer_disconnected()`
+
+This will fire with the server's id.
 
 ---
 

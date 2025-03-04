@@ -27,15 +27,14 @@ func _ready() -> void:
 		create_server(12345)
 
 func create_server(port: int) -> void:
-	multiplayer.set_auth_callback(func(_peer_id: int, _secret: String) -> bool:
-		return true
+	multiplayer.set_auth_callback(func(_peer_id: int, secret: String) -> bool:
+		return secret == "hello"
 	)
 	
 	var peer := ENetMultiplayerPeer.new()
 
 	peer.peer_connected.connect(_mp_callback.bind("@server: peer_connected"))
 	peer.peer_disconnected.connect(_mp_callback.bind("@server: peer_disconnected"))
-
 
 	# I'll run the server on macos and connect to it from my windows machine manually.
 	var err = peer.create_server(port, 8)
@@ -64,6 +63,7 @@ func _mp_callback(first: Variant, a: Variant = null, b: Variant = null, c: Varia
 	var pid = multiplayer.get_unique_id() if Lobby.online() else 0
 	var sid = multiplayer.get_remote_sender_id()
 	lg("pid: " + str(pid) + "; sid: " + str(sid) + "; " + str(first) + "; " + str(a) + "; " + str(b) + "; " + str(c) + "; " + str(d))
+
 
 func lg(message: String) -> void:
 	match Lobby.status():
