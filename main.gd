@@ -18,12 +18,7 @@ func _ready() -> void:
 	multiplayer.connected_to_server.connect(_mp_callback.bind("@mp: connected_to_server"))
 	multiplayer.connection_failed.connect(_mp_callback.bind("@mp: connection_failed"))
 	multiplayer.peer_packet.connect(_mp_callback.bind("@mp: peer_packet"))
-	multiplayer.peer_authenticating.connect(func(peer_id: int):
-		print("  WOW   peer authenticating: " + str(peer_id))
-		if Lobby.status() != &"Hosting":
-			multiplayer.send_auth(peer_id, "HELLO".to_utf8_buffer())
-		
-	)
+	multiplayer.peer_authenticating.connect(_on_peer_authenticating)
 	multiplayer.peer_authentication_failed.connect(_mp_callback.bind("@mp: peer_authentication_failed"))
 
 	if os == "Windows":
@@ -31,12 +26,36 @@ func _ready() -> void:
 	else:
 		create_server(12345)
 
-func create_server(port: int) -> void:
-	multiplayer.set_auth_callback(func(_peer_id: int, secret: String) -> bool:
-		lg("server auth callback: " + str(_peer_id) + " " + secret)
-		return secret == "Jamon"
-	)
+func _on_peer_authenticating(peer_id: int) -> void:
+	lg("Peer is authenticating: " + str(peer_id))
 	
+	if Lobby.status() == &"Hosting":
+		# Server sends response to client
+		var auth_packet = "ServerAuth".to_utf8_buffer()
+		var error = multiplayer.send_auth(peer_id, auth_packet)
+		lg("Server sent auth to peer: " + str(error))
+	else:
+		# Client authenticates with server (peer_id should be 1 for server)
+		var auth_packet = "Jamon".to_utf8_buffer()
+		var error = multiplayer.send_auth(peer_id, auth_packet)
+		lg("Client sent auth to server: " + str(error))
+
+func _auth_handler_server(peer_id: int, auth_data: PackedByteArray) -> void:
+	var auth_string = auth_data.get_string_from_utf8()
+	lg("Server auth handler: " + str(peer_id) + " sent: " + auth_string)
+	if auth_string == "Jamon":
+		multiplayer.complete_auth(peer_id)
+		lg("Server approved client auth")
+	else:
+		lg("Server rejected client auth")
+
+func _auth_handler_client(peer_id: int, auth_data: PackedByteArray) -> void:
+	var auth_string = auth_data.get_string_from_utf8()
+	lg("Client auth handler: " + str(peer_id) + " sent: " + auth_string)
+	multiplayer.complete_auth(peer_id)
+	lg("Client completed auth")
+
+func create_server(port: int) -> void:
 	var peer := ENetMultiplayerPeer.new()
 
 	peer.peer_connected.connect(_mp_callback.bind("@server: peer_connected"))
@@ -50,13 +69,11 @@ func create_server(port: int) -> void:
 		lg("Created server with id: " + str(peer.get_unique_id()))
 	
 	multiplayer.multiplayer_peer = peer
+	multiplayer.auth_callback = _auth_handler_server
 
 func create_client(ip: String, port: int) -> void:
 	var client = ENetMultiplayerPeer.new()
-	multiplayer.set_auth_callback(func(_peer_id: int, secret: String) -> bool:
-		lg("client auth callback: " + str(_peer_id) + " " + secret)
-		return secret == "Jamon"
-	)
+	
 	var err = client.create_client(ip, port)
 	if err != OK:
 		lg("🔴 ERROR: " + str(err))
@@ -67,7 +84,7 @@ func create_client(ip: String, port: int) -> void:
 	client.peer_disconnected.connect(_mp_callback.bind("@client: peer_disconnected"))
 
 	multiplayer.multiplayer_peer = client
-
+	multiplayer.auth_callback = _auth_handler_client
 
 func _mp_callback(first: Variant, a: Variant = null, b: Variant = null, c: Variant = null, d: Variant = null) -> void:
 	var pid = multiplayer.get_unique_id() if Lobby.online() else 0
