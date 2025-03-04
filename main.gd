@@ -62,7 +62,7 @@ func _mp_callback(first: Variant, a: Variant = null, b: Variant = null, c: Varia
 
 func lg(message: String) -> void:
 	match Lobby.status():
-		&"Server":
+		&"Hosting":
 			print("🔵 SERVER: " + message)
 		&"Connected":
 			# get the client ID
