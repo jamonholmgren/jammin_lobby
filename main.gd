@@ -12,14 +12,14 @@ func _ready() -> void:
 
 	print(Lobby.get_ips())
 
-	multiplayer.peer_connected.connect(_mp_callback.bind("peer_connected"))
-	multiplayer.peer_disconnected.connect(_mp_callback.bind("peer_disconnected"))
-	multiplayer.server_disconnected.connect(_mp_callback.bind("server_disconnected"))
-	multiplayer.connected_to_server.connect(_mp_callback.bind("connected_to_server"))
-	multiplayer.connection_failed.connect(_mp_callback.bind("connection_failed"))
-	multiplayer.peer_packet.connect(_mp_callback.bind("peer_packet"))
-	multiplayer.peer_authenticating.connect(_mp_callback.bind("peer_authenticating"))
-	multiplayer.peer_authentication_failed.connect(_mp_callback.bind("peer_authentication_failed"))
+	multiplayer.peer_connected.connect(_mp_callback.bind("@mp: peer_connected"))
+	multiplayer.peer_disconnected.connect(_mp_callback.bind("@mp: peer_disconnected"))
+	multiplayer.server_disconnected.connect(_mp_callback.bind("@mp: server_disconnected"))
+	multiplayer.connected_to_server.connect(_mp_callback.bind("@mp: connected_to_server"))
+	multiplayer.connection_failed.connect(_mp_callback.bind("@mp: connection_failed"))
+	multiplayer.peer_packet.connect(_mp_callback.bind("@mp: peer_packet"))
+	multiplayer.peer_authenticating.connect(_mp_callback.bind("@mp: peer_authenticating"))
+	multiplayer.peer_authentication_failed.connect(_mp_callback.bind("@mp: peer_authentication_failed"))
 
 	if os == "Windows":
 		create_client("10.0.0.116", 12345)
