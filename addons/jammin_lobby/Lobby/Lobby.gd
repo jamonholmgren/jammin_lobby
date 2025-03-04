@@ -90,13 +90,12 @@ func _ready() -> void:
 	debug = true
 	me = {}
 	me.merge(DEFAULT_PLAYER_DATA, true)
-	# setup_multiplayer()
-	# setup_request()
+	setup_multiplayer()
+	setup_request()
 
 func _process(_delta) -> void:
-	# if not discovery_server.is_bound(): set_process(false); return
-	# check_for_clients_discovery()
-	pass
+	if not discovery_server.is_bound(): set_process(false); return
+	check_for_clients_discovery()
 
 func _exit_tree():
 	leave("Lobby is exiting the tree, leaving")
@@ -108,8 +107,19 @@ func setup_multiplayer():
 	cs(multiplayer, "connected_to_server", _on_connection_succeeded)
 	cs(multiplayer, "connection_failed", _on_connection_failed)
 	cs(multiplayer, "server_disconnected", _on_connection_ended)
-	cs(multiplayer, "peer_connected", _on_peer_connected)
-	cs(multiplayer, "peer_disconnected", _on_peer_disconnected)
+	
+	# This fires for every single peer that connects/disconnects
+	cs(multiplayer, "peer_connected", _on_any_peer_connected)
+	cs(multiplayer, "peer_disconnected", _on_any_peer_disconnected)
+
+	# peer_connected
+	# peer_disconnected
+	# server_disconnected
+	# connected_to_server
+	# connection_failed
+	# peer_packet
+	# peer_authenticating
+	# peer_authentication_failed
 
 	# Discovery server
 	if discovery_server: discovery_server.queue_free()
@@ -163,6 +173,9 @@ func stop_hosting(msg: String = "Game ended by host"):
 	stop_server("Game ended by host; " + msg)	
 
 func close_game_peer():
+	# As explained in Godot_Multiplayer_Explained.md, we set to OfflineMultiplayerPeer
+	# rather than to null. This prevents errors like "No multiplayer peer is assigned"
+	# that happen when you access things like get_multiplayer_authority()
 	multiplayer.multiplayer_peer = OfflineMultiplayerPeer.new()
 
 # Server Actions *******************************************************************
@@ -171,10 +184,12 @@ func start_server() -> void:
 	var peer = setup_game_peer()
 	var error = peer.create_server(config.game_port, config.max_players)
 	if error != OK: return start_server_failed(error)
-	multiplayer.multiplayer_peer = peer
-	# TODO: update the lobby name somehow
 	
-	# manually signal because there's no built-in signal
+	# Set the peer - no built-in signals are emitted when starting a server
+	# We manually emit our own signals
+	multiplayer.multiplayer_peer = peer
+	
+	# Manually signal because Godot doesn't provide signals for server start
 	hosting_started.emit()
 	me_connecting_to_lobby.emit()
 	sync_players()
@@ -279,7 +294,11 @@ func check_for_clients_discovery() -> void:
 # Client Actions *******************************************************************
 
 func host_sync_all_players():
+	# This function is called when player data changes and needs to be
+	# broadcast to all clients from the host server
 	if not i_am_host(): return
+	# Tell all connected peers (including ourselves) about all players
+	# This will trigger sync_all_players on all clients
 	sync_all_players.rpc(_host_players)
 
 @rpc("authority", "reliable", "call_local")
@@ -391,6 +410,12 @@ func join(lobby: Dictionary) -> void:
 	var error: Error = peer.create_client(ip, port)
 	lm("error: ", error)
 	if error != OK: return join_error(error)
+	
+	# Set the peer - this will eventually trigger:
+	# 1. _on_remote_peer_connected when connected to server (pid=1)
+	# 2. _on_connection_succeeded when successfully connected
+	# 3. _on_any_peer_connected for each existing peer
+	# These will emit various signals like me_connecting_to_lobby and player_connecting_to_lobby
 	multiplayer.multiplayer_peer = peer
 
 func join_error(error: int) -> void:
@@ -545,9 +570,12 @@ func _on_remote_peer_connected(pid: int):
 		lm(" - _on_remote_peer_connected: ", pid)
 		me_connecting_to_lobby.emit()
 	else:
+		# I am the server and someone else is connecting to me
+		# This shouldn't happen unless I'm the host
 		assert(i_am_host(), JamminErrors.REMOTE_PEER_NOT_HOST)
-		# # Someone else remote to my server is joining_lobby
-		# player_connecting_to_lobby.emit(pid)
+		# According to Godot_Multiplayer_Explained.md, this signal fires the same time as
+		# multiplayer.peer_connected, which is already handled in _on_any_peer_connected
+		# No need to emit player_connecting_to_lobby again
 
 func _on_remote_peer_disconnected(pid: int, reason: String = ""):
 	lm("_on_remote_peer_disconnected: ", pid, " " + reason)
@@ -559,18 +587,20 @@ func _on_remote_peer_disconnected(pid: int, reason: String = ""):
 		_host_players.erase(pid)
 		host_sync_all_players()
 
-func _on_peer_connected(pid: int):
-	lm("_on_peer_connected: ", pid)
+func _on_any_peer_connected(pid: int):
+	# - On the server, this fires once when a new peer connects
+	# - On a client, this fires for every peer already connected to the server (including the server)
+	# - We mute this signal for anyone except the server
+	if not i_am_host(): return
 	player_connecting_to_lobby.emit(pid)
-	lm("player_connecting_to_lobby.emit: ", pid)
 
-func _on_peer_disconnected(pid: int):
-	lm("_on_peer_disconnected: ", pid)
-	var p = find_by_pid(pid)
-	if not p: return
-	p.stop_sync()
-	p.is_ready = false
-	if i_am_host() and not is_me(p): p.queue_free()
-	player_left_lobby.emit(p)
+func _on_any_peer_disconnected(pid: int):
+	# - This fires on all clients when any peer disconnects, with the disconnected peer's ID
+	# - It's the main way to know when peers disconnect
+	# - We mute this signal for anyone except the server
+	if not i_am_host(): return
+	if pid == SERVER_ID: _host_players.clear(); return
+	if pid in _host_players: _host_players.erase(pid)
+	host_sync_all_players()
 
 # Endpoints ***************************************************************

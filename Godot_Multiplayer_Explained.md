@@ -147,11 +147,11 @@ This will fire with the new peer's id.
 
 `multiplayer.peer_disconnected(peer_id)`
 
-This will fire with the peer's id.
+This will fire with the peer's id on all clients, including the server.
 
 `multiplayer.multiplayer_peer.peer_disconnected(peer_id)`
 
-This will fire with the peer's id.
+This will fire with the peer's id, but only on the server.
 
 ---
 
@@ -183,8 +183,8 @@ multiplayer.multiplayer_peer = peer
 > JamminLobby handles this for you and provides signals.
 >
 > ```gdscript
-> Lobby.i_joined_lobby.connect(func(): print("Joined lobby"))
-> Lobby.i_failed_to_join_lobby.connect(func(message: String): print("Failed to join lobby: ", message))
+> Lobby.me_joined_lobby.connect(func(player): print("Joined lobby"))
+> Lobby.me_left_lobby.connect(func(reason): print("Failed to join lobby: ", reason))
 > Lobby.join({ "ip": "127.0.0.1", "port": 1234 })
 > ```
 
@@ -215,7 +215,7 @@ multiplayer.peer_connected.connect(func(pid: int): print(pid))
 
 `multiplayer.peer_disconnected(peer_id)`
 
-This will fire with the other peer's id on your client.
+This will fire with the disconnected peer's id on all clients.
 
 #### When the server disconnects
 

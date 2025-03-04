@@ -38,13 +38,13 @@ To access the current players in the lobby, use `Lobby.get_players()`. It'll ret
 {
   1: {
     "id": 1,
-    "username": "Your Playername",
-    "is_host": true,
+    "username": "Host Player",
+    "host": true,
   },
   2948524: {
     "id": 2948524,
-    "username": "Player 2",
-    "is_host": false,
+    "username": "Client Player",
+    "host": false,
   },
 }
 ```
@@ -53,18 +53,18 @@ To access your own player object, use `Lobby.me`:
 
 ```gdscript
 Lobby.me.username
-Lobby.me.is_host
+Lobby.me.host
 
 print(Lobby.me)
 
 # {
 #   "id": 1,
 #   "username": "Your Playername",
-#   "is_host": true,
+#   "host": true,
 # }
 ```
 
-To update your username, use `Lobby.me.update_me({ "ready": true })`. This will update on all other players as well.
+To update your player data, use `Lobby.update_me({ "username": "New Name" })`. This will update your local player data and synchronize it with all other players in the lobby.
 
 ## Custom Usage
 
@@ -86,9 +86,11 @@ To start hosting, use `Lobby.start_hosting()`.
 
 To join a game, use `Lobby.join({ "ip": "192.168.1.100", "port": 1234 })`.
 
-To send a message to all players, use `Lobby.send_message("Hello, world!")`.
+To send a chat message to all players, use `Lobby.send_chat("Hello, world!")`.
 
-To get the current players in the lobby, use `Lobby.get_players()`.
+To display system messages locally (not sent to other players), use `Lobby.send_system_chat("Game starting...")`.
+
+To get the current players in the lobby, access `Lobby.get_players()`.
 
 To get your own player object, use `Lobby.me`.
 
