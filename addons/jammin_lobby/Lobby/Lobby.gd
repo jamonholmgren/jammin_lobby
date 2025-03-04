@@ -90,8 +90,8 @@ func _ready() -> void:
 	debug = true
 	me = {}
 	me.merge(DEFAULT_PLAYER_DATA, true)
-	setup_multiplayer()
-	setup_request()
+	# setup_multiplayer()
+	# setup_request()
 
 func _process(_delta) -> void:
 	if not discovery_server.is_bound(): set_process(false); return
@@ -497,11 +497,17 @@ func status(peer: MultiplayerPeer = null) -> StringName:
 		# check if peer is server by checking if it has a host object
 		# if multiplayer and multiplayer.multiplayer_peer and multiplayer.multiplayer_peer == peer and multiplayer.is_server(): return &"Hosting"
 		print(" xxx ", peer.host.get_peers())
+		print(" xxxid ", peer.get_unique_id())
+		var host: ENetConnection = peer.host
 		var peers: Array[ENetPacketPeer] = peer.host.get_peers()
 		if peers.size() > 0:
 			for p in peers:
 				print("   xxx - ", p.get_remote_port())
 				print("   xxx - ", p.get_remote_address())
+				print("   xxx - ", p.get_state())
+				print("   xxx - ", peer.host)
+				if p.get_state() == ENetPacketPeer.STATE_CONNECTED:
+					return &"Hosting"
 		# if peer.host and peer.host.get_peers().has(id()): return &"Server"
 		return &"Connected"
 	return &"Unknown"
