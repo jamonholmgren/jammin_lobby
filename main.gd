@@ -18,7 +18,11 @@ func _ready() -> void:
 	multiplayer.connected_to_server.connect(_mp_callback.bind("@mp: connected_to_server"))
 	multiplayer.connection_failed.connect(_mp_callback.bind("@mp: connection_failed"))
 	multiplayer.peer_packet.connect(_mp_callback.bind("@mp: peer_packet"))
-	multiplayer.peer_authenticating.connect(_mp_callback.bind("@mp: peer_authenticating"))
+	multiplayer.peer_authenticating.connect(func(peer_id: int):
+		print("  WOW   peer authenticating: " + str(peer_id))
+		if Lobby.status() == &"Hosting":
+			multiplayer.send_auth(peer_id, "Give me the secret".to_utf8_buffer())
+	)
 	multiplayer.peer_authentication_failed.connect(_mp_callback.bind("@mp: peer_authentication_failed"))
 
 	if os == "Windows":
