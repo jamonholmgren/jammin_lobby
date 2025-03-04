@@ -30,7 +30,7 @@ func _on_peer_authenticating(peer_id: int) -> void:
 	# Client authenticates with server by sending credentials
 	var auth_packet = "Jamon".to_utf8_buffer()
 	var error = multiplayer.send_auth(peer_id, auth_packet)
-	lg("Client %i sent auth to server: %s" % [peer_id, str(error)])
+	lg("Client %s sent auth to server: %s" % [str(peer_id), str(error)])
 
 # Server gets the auth packet from above and checks it
 func _auth_handler_server(peer_id: int, auth_data: PackedByteArray) -> void:
