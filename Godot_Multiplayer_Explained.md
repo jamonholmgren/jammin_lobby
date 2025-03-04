@@ -91,7 +91,8 @@ else:
 ```
 
 > [!NOTE]
-> JamminLobby handles this for you and provides signals:
+> JamminLobby handles this for you and provides signals. We call it "hosting" rather than
+> "starting a server".
 >
 > ```gdscript
 > Lobby.hosting_started.connect(func(): print("Hosting started"))
@@ -99,28 +100,21 @@ else:
 > Lobby.start_hosting()
 > ```
 
-### Getting your peer ID
-
-When connected, you can get your peer ID by using `multiplayer.get_unique_id()`. This will change when you reconnect, so don't rely on it as a persistent identifier; however, it works fine as an identifier during a single connection. Basically, it's a session ID.
-
-```gdscript
-var peer_id = multiplayer.get_unique_id()
-print("Peer ID: ", peer_id)
-```
-
-- With the OfflineMultiplayerPeer active, this will always return 1, which means "i'm the server".
-- With multiplayer.multiplayer_peer set to `null`, this will return 0 and push an error.
-- For JamminLobby, `Lobby.id()` will return `0` if you're offline (even if you have an OfflineMultiplayerPeer), and your true peer ID if you're connected.
-
 ### `multiplayer.peer_connected`
 
-This fires when a new peer connects to the server. It provides the new peer_id. `get_remote_sender_id()` returns 0.
+**From the server's perspective:**
+
+This signal fires once when a new peer connects to the server. It provides the new peer_id. `get_remote_sender_id()` during this event returns 0.
 
 ```gdscript
 multiplayer.peer_connected.connect(func(peer_id: int):
   print("Peer connected: ", peer_id)
 )
 ```
+
+**From the client's perspective:**
+
+This signal fires multiple times during a connection.
 
 ### `multiplayer.multiplayer_peer.peer_connected`
 
@@ -203,6 +197,19 @@ multiplayer.multiplayer_peer.create_server(port: int, max_players: int = 4)
 ```gdscript
 multiplayer.multiplayer_peer.create_client(ip: String, port: int)
 ```
+
+### Getting your peer ID
+
+When connected, you can get your peer ID by using `multiplayer.get_unique_id()`. This will change when you reconnect, so don't rely on it as a persistent identifier; however, it works fine as an identifier during a single connection. Basically, it's a session ID.
+
+```gdscript
+var peer_id = multiplayer.get_unique_id()
+print("Peer ID: ", peer_id)
+```
+
+- With the OfflineMultiplayerPeer active, this will always return 1, which means "i'm the server".
+- With multiplayer.multiplayer_peer set to `null`, this will return 0 and push an error.
+- For JamminLobby, `Lobby.id()` will return `0` if you're offline (even if you have an OfflineMultiplayerPeer), and your true peer ID if you're connected.
 
 # Misc Notes
 

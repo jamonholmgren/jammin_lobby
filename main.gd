@@ -29,8 +29,8 @@ func _ready() -> void:
 func create_server(port: int) -> void:
 	var peer := ENetMultiplayerPeer.new()
 
-	peer.peer_connected.connect(_mp_callback.bind("@peer_connected"))
-	peer.peer_disconnected.connect(_mp_callback.bind("@peer_disconnected"))
+	peer.peer_connected.connect(_mp_callback.bind("@server: peer_connected"))
+	peer.peer_disconnected.connect(_mp_callback.bind("@server: peer_disconnected"))
 
 	# I'll run the server on macos and connect to it from my windows machine manually.
 	var err = peer.create_server(port, 8)
@@ -44,8 +44,8 @@ func create_server(port: int) -> void:
 func create_client(ip: String, port: int) -> void:
 	var client = ENetMultiplayerPeer.new()
 	client.create_client(ip, port)
-	client.peer_connected.connect(_mp_callback.bind("peer_connected"))
-	client.peer_disconnected.connect(_mp_callback.bind("peer_disconnected"))
+	client.peer_connected.connect(_mp_callback.bind("@client: peer_connected"))
+	client.peer_disconnected.connect(_mp_callback.bind("@client: peer_disconnected"))
 
 	multiplayer.multiplayer_peer = client
 
