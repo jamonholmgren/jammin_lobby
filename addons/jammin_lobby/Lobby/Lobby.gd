@@ -86,19 +86,19 @@ var refreshing := false
 
 # Lifecycle ***********************************************************************
 
-func _ready() -> void:
-	debug = true
-	me = {}
-	me.merge(DEFAULT_PLAYER_DATA, true)
-	setup_multiplayer()
-	setup_request()
+# func _ready() -> void:
+# 	debug = true
+# 	me = {}
+# 	me.merge(DEFAULT_PLAYER_DATA, true)
+# 	setup_multiplayer()
+# 	setup_request()
 
-func _process(_delta) -> void:
-	if not discovery_server.is_bound(): set_process(false); return
-	check_for_clients_discovery()
+# func _process(_delta) -> void:
+# 	if not discovery_server.is_bound(): set_process(false); return
+# 	check_for_clients_discovery()
 
-func _exit_tree():
-	leave("Lobby is exiting the tree, leaving")
+# func _exit_tree():
+# 	leave("Lobby is exiting the tree, leaving")
 
 func setup_multiplayer():
 	lm("Lobby: _ready")
