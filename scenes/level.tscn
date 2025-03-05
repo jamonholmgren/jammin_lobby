@@ -1,6 +1,5 @@
-[gd_scene load_steps=10 format=3 uid="uid://d3pjxi6563ipv"]
+[gd_scene load_steps=9 format=3 uid="uid://d3pjxi6563ipv"]
 
-[ext_resource type="PackedScene" uid="uid://damsrqwlonlca" path="res://scenes/tank.tscn" id="1_uknb0"]
 [ext_resource type="Script" path="res://scenes/spawn_point.gd" id="2_a7mro"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_jqy14"]
@@ -36,9 +35,6 @@ environment = SubResource("Environment_b4w6i")
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
 transform = Transform3D(-0.866023, -0.433016, 0.250001, 0, 0.499998, 0.866027, -0.500003, 0.749999, -0.43301, 0, 0, 0)
 shadow_enabled = true
-
-[node name="Tank" parent="." instance=ExtResource("1_uknb0")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 26, 3, 31)
 
 [node name="Obstacles" type="Node3D" parent="."]
 
@@ -156,10 +152,13 @@ use_collision = true
 size = Vector3(6, 6, 48)
 material = SubResource("StandardMaterial3D_52x48")
 
+[node name="Tanks" type="Node3D" parent="."]
+unique_name_in_owner = true
+
 [node name="SpawnPoints" type="Node3D" parent="."]
 
 [node name="SpawnPoint1" type="Area3D" parent="SpawnPoints" groups=["spawn_points"]]
-transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, -78.3209, 2.16271, 75.3803)
+transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, -78.3209, 2.16271, 75.3803)
 collision_layer = 0
 collision_mask = 2
 monitorable = false
@@ -170,7 +169,7 @@ script = ExtResource("2_a7mro")
 shape = SubResource("SphereShape3D_f5u8g")
 
 [node name="SpawnPoint2" type="Area3D" parent="SpawnPoints" groups=["spawn_points"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 17.2332, 2.16271, 76.4482)
+transform = Transform3D(-1, 0, -8.74228e-08, 0, 1, 0, 8.74228e-08, 0, -1, 17.2332, 2.16271, 76.4482)
 collision_layer = 0
 collision_mask = 2
 script = ExtResource("2_a7mro")
@@ -179,7 +178,7 @@ script = ExtResource("2_a7mro")
 shape = SubResource("SphereShape3D_f5u8g")
 
 [node name="SpawnPoint3" type="Area3D" parent="SpawnPoints" groups=["spawn_points"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 75.3033, 2.16271, 75.6731)
+transform = Transform3D(-1, 0, -8.74228e-08, 0, 1, 0, 8.74228e-08, 0, -1, 75.3033, 2.16271, 75.6731)
 collision_layer = 0
 collision_mask = 2
 script = ExtResource("2_a7mro")
@@ -188,7 +187,7 @@ script = ExtResource("2_a7mro")
 shape = SubResource("SphereShape3D_f5u8g")
 
 [node name="SpawnPoint4" type="Area3D" parent="SpawnPoints" groups=["spawn_points"]]
-transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, 69.4209, 2.16271, -75.2138)
+transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, 69.4209, 2.16271, -75.2138)
 collision_layer = 0
 collision_mask = 2
 script = ExtResource("2_a7mro")
@@ -197,7 +196,7 @@ script = ExtResource("2_a7mro")
 shape = SubResource("SphereShape3D_f5u8g")
 
 [node name="SpawnPoint5" type="Area3D" parent="SpawnPoints" groups=["spawn_points"]]
-transform = Transform3D(-1, 0, -8.74228e-08, 0, 1, 0, 8.74228e-08, 0, -1, -71.0855, 2.16271, -75.2138)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -71.0855, 2.16271, -75.2138)
 collision_layer = 0
 collision_mask = 2
 script = ExtResource("2_a7mro")
@@ -206,7 +205,7 @@ script = ExtResource("2_a7mro")
 shape = SubResource("SphereShape3D_f5u8g")
 
 [node name="SpawnPoint6" type="Area3D" parent="SpawnPoints" groups=["spawn_points"]]
-transform = Transform3D(1.31134e-07, 0, -1, 0, 1, 0, 1, 0, 1.31134e-07, -61.4003, 2.16271, 17.0543)
+transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, -61.4003, 2.16271, 17.0543)
 collision_layer = 0
 collision_mask = 2
 script = ExtResource("2_a7mro")
@@ -215,7 +214,7 @@ script = ExtResource("2_a7mro")
 shape = SubResource("SphereShape3D_f5u8g")
 
 [node name="SpawnPoint7" type="Area3D" parent="SpawnPoints" groups=["spawn_points"]]
-transform = Transform3D(1.31134e-07, 0, -1, 0, 1, 0, 1, 0, 1.31134e-07, -19.5919, 2.16271, -31.019)
+transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, -19.5919, 2.16271, -31.019)
 collision_layer = 0
 collision_mask = 2
 script = ExtResource("2_a7mro")
@@ -224,7 +223,7 @@ script = ExtResource("2_a7mro")
 shape = SubResource("SphereShape3D_f5u8g")
 
 [node name="SpawnPoint8" type="Area3D" parent="SpawnPoints" groups=["spawn_points"]]
-transform = Transform3D(-2.18557e-07, 0, 1, 0, 1, 0, -1, 0, -2.18557e-07, 52.4769, 2.16271, -0.615307)
+transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, 52.4769, 2.16271, -0.615307)
 collision_layer = 0
 collision_mask = 2
 script = ExtResource("2_a7mro")
