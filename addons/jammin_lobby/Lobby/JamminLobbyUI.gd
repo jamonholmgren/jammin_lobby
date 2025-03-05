@@ -25,10 +25,6 @@ func _ready() -> void:
 	%JoiningOverlay.hide()
 	update_lobby_ui()
 
-func _physics_process(_delta: float) -> void:
-	# Every 5 seconds, update the ping if we're online
-	if Engine.get_physics_frames() % (5 * 60) == 0 and Lobby.online() : Lobby.update_ping()
-
 func _on_create_lobby_pressed() -> void:
 	Lobby.start_hosting()
 
