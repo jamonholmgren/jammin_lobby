@@ -54,7 +54,7 @@ func spawn_tank_random() -> void:
 
 @rpc("reliable", "any_peer", "call_local")
 func spawn_tank_at(spawn_point_path: NodePath) -> void:
-	var tank_name = "Tank-" + str(Lobby.sid())
+	var tank_name = "Tank-" + str(Lobby.sender_id())
 	
 	# Spawn the tank
 	var spawn_point = get_node(spawn_point_path)
@@ -63,7 +63,7 @@ func spawn_tank_at(spawn_point_path: NodePath) -> void:
 	level.get_node("%Tanks").add_child(tank)
 	tank.position = spawn_point.position
 	tank.rotation = spawn_point.rotation
-	tank.set_multiplayer_authority(Lobby.sid())
+	tank.set_multiplayer_authority(Lobby.sender_id())
 
 	# If it's my tank, set my camera to its camera
-	if Lobby.sid() == Lobby.id(): tank.get_node("%TankCamera").make_current()
+	if Lobby.sender_id() == Lobby.id(): tank.get_node("%TankCamera").make_current()

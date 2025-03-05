@@ -238,7 +238,7 @@ func sync_me_with_host():
 func update_player_data(player: Dictionary):
 	if not i_am_host(): return
 
-	var pid = sid()
+	var pid = sender_id()
 	if not _host_players.has(pid): _host_players[pid] = {}
 	
 	# No change? skip
@@ -467,7 +467,7 @@ func broadcast(req_name: String, data: Dictionary = {}) -> void: request.broadca
 # It's kind of an all-purpose communication signal.
 @rpc("authority", "reliable", "call_local")
 func send_game_event(command: String, data: Dictionary = {}) -> void:
-	if not sid() > 0: return pe("send_game_event should be sent via .rpc()")
+	if not sender_id() > 0: return pe("send_game_event should be sent via .rpc()")
 	game_event.emit(command, data)
 
 # Chat methods *******************************************************************
@@ -482,7 +482,7 @@ func send_chat(message: String):
 func host_send_chat(message: String):
 	if not i_am_host(): return
 
-	var sender_id = sid()
+	var sender_id = sender_id()
 	if sender_id == 0: sender_id = id()
 
 	# We are the host, so add the message to our list and broadcast the list to all clients
@@ -572,7 +572,7 @@ func status(peer: MultiplayerPeer = null) -> StringName:
 		return &"Connected"
 	return &"Unknown"
 
-func sid() -> int: return multiplayer.get_remote_sender_id()
+func sender_id() -> int: return multiplayer.get_remote_sender_id()
 
 func online() -> bool: return status() == &"Connected" or status() == &"Hosting"
 func pid_in_lobby(pid: int) -> bool: return online() and (pid == SERVER_ID or multiplayer.get_peers().has(pid))
@@ -584,11 +584,11 @@ func is_me(p: Dictionary) -> bool: return p and me.id == p.id
 func update_ping() -> void:
 	if not online(): return
 	ping_start = Time.get_ticks_usec()
-	ping_server.rpc_id(sid())
+	ping_server.rpc_id(sender_id())
 
 @rpc("any_peer", "reliable", "call_local")
 func ping_server() -> void:
-	pong_client.rpc_id(sid())
+	pong_client.rpc_id(sender_id())
 
 @rpc("any_peer", "reliable", "call_local")
 func pong_client() -> void:
