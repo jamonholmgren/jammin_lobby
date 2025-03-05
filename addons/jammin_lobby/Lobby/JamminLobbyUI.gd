@@ -37,7 +37,6 @@ func _on_username_changed() -> void:
 	var new_username = %Username.text
 	if new_username.length() <= 0: return
 	Lobby.update_me({ username = new_username })
-	Lobby.sync_players()
 
 func _on_refresh_pressed() -> void:
 	Lobby.find_lobbies()
@@ -137,7 +136,6 @@ func show_create_lobby():
 
 func _on_ready_pressed() -> void:
 	Lobby.update_me({ ready = !Lobby.me.get("ready", false) })
-	Lobby.sync_players()
 
 func _on_lobby_clicked(event: InputEvent, lobby: Dictionary) -> void:
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:

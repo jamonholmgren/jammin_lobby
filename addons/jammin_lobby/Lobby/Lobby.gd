@@ -208,24 +208,25 @@ func start_server() -> void:
 	# Manually signal because Godot doesn't provide signals for server start
 	hosting_started.emit()
 	me_connecting_to_lobby.emit()
-	sync_players()
+	sync_me_with_host()
 
-func update_me(data: Dictionary):
+func update_me(changes: Dictionary):
 	# Has anything changed?
-	if FileUtils.is_eq(me, data): return
+	if FileUtils.is_subset(changes, me): return
 
-	me.merge(data, true)
+	me.merge(changes, true)
 	Options.set("player-" + str(save_slot), me)
 	me_updated.emit(me)
-	sync_players()
+	sync_me_with_host()
 
-func sync_players():
+func sync_me_with_host():
 	if not online(): return
 	update_player_data.rpc_id(SERVER_ID, me)
 
 @rpc("any_peer", "reliable", "call_local")
 func update_player_data(player: Dictionary):
 	if not i_am_host(): return
+
 	var pid = sid()
 	if not _host_players.has(pid): _host_players[pid] = {}
 	
@@ -236,8 +237,8 @@ func update_player_data(player: Dictionary):
 	_host_players[pid].merge(player, true)
 	_host_players[pid].id = pid
 	
-	# Sync to all _host_players
-	host_sync_all_players()
+	# Tell all connected peers (including ourselves) about all players
+	update_players_from_host.rpc(_host_players)
 
 func start_server_failed(error: int) -> void:
 	close_game_peer()
@@ -316,16 +317,9 @@ func check_for_clients_discovery() -> void:
 
 # Client Actions *******************************************************************
 
-func host_sync_all_players():
-	# This function is called when player data changes and needs to be
-	# broadcast to all clients from the host server
-	if not i_am_host(): return
-	# Tell all connected peers (including ourselves) about all players
-	# This will trigger sync_all_players on all clients
-	sync_all_players.rpc(_host_players)
-
+# This is called by the host to make sure all clients have the same player data
 @rpc("authority", "reliable", "call_local")
-func sync_all_players(updated_players: Dictionary):
+func update_players_from_host(updated_players: Dictionary):
 
 	# Track the active players so we can remove inactive ones
 	var active_players: Array[int] = []
@@ -343,8 +337,6 @@ func sync_all_players(updated_players: Dictionary):
 		# No change? skip
 		if not is_new and not is_updated: continue
 
-		print(pid, "is_new: ", is_new, " is_updated: ", is_updated, " is_me: ", is_me, " is_host: ", is_host)
-		
 		# Update my data
 		if is_me: update_me(new_player)
 		
@@ -530,10 +522,12 @@ func find_by_pid(pid: int):
 	if pid == 0: return me
 	return players.get(pid, null)
 
-func remove_by_pid(pid: int):
+func host_remove_by_pid(pid: int):
+	if not i_am_host(): return
 	if pid in _host_players:
 		_host_players.erase(pid)
-		host_sync_all_players()
+		# Tell all connected peers (including ourselves) about all players
+		update_players_from_host.rpc(_host_players)
 
 # Getting state *******************************************************************
 
@@ -576,7 +570,7 @@ func is_me(p: Dictionary) -> bool: return p and me.id == p.id
 func _on_connection_succeeded():
 	lm("_on_connection_succeeded")
 	me_connecting_to_lobby.emit()
-	sync_players()
+	sync_me_with_host()
 
 # I tried to join a lobby, but it failed for some
 # reason. Only called on clients.
@@ -620,8 +614,7 @@ func _on_peer_disconnected(pid: int, reason: String = ""):
 		return
 
 	# OK, if we're the host, a client has disconnected from us
-	if not i_am_host(): return
-	remove_by_pid(pid)
+	host_remove_by_pid(pid)
 
 # These are noisy and fire for every single peer that connects/disconnects
 # - On the server, this fires once when a new peer connects
@@ -637,7 +630,6 @@ func _on_any_peer_connected(pid: int):
 # - Way too noisy, but we do use it to know when a client is disconnecting from the server
 # - and remove it from the host players list
 func _on_any_peer_disconnected(pid: int):
-	if not i_am_host(): return
-	remove_by_pid(pid)
+	host_remove_by_pid(pid)
 
 # Endpoints ***************************************************************

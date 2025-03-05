@@ -5,7 +5,7 @@ signal updated(key: String, value: Variant)
 signal problem_detected(message: String)
 
 var save_file = "user://options.json"
-var backup_file = "user://backup.json"
+var backup_file = "user://options-backup.json"
 
 # Where we store the actual options
 var data: Dictionary
@@ -41,7 +41,7 @@ func save() -> JamminOptions:
 	backup()
 	FileUtils.save_json(save_file, data)
 
-	# Test if the saved file is valid
+	# Test if the newly saved file is valid
 	var error = test_restore_options(save_file)
 	if error != OK: return pe("options mismatch! ", error)
 
@@ -71,7 +71,7 @@ func test_restore_options(loc: String):
 			# Something went wrong; restore from a backup if it exists
 			var bkp = loc + ".backup.json"
 			FileUtils.copy_file(bkp, loc)
-			pe("Lobby: tested options restore, but they didn't match! ", key, ": ", data[key], " != ", restored[key])
+			pe("Lobby: tested options restore, but they didn't match!\n", key, ":\nCurrent: ", data[key], "\nBackup:  ", restored[key])
 			return ERR_INVALID_DATA
 	return OK
 

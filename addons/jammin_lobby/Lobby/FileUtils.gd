@@ -15,6 +15,13 @@ static func is_eq(a: Dictionary, b: Dictionary) -> bool:
 	for k in a_keys: if a[k] != b[k]: return false
 	return true
 
+# Check if a is a subset of b
+static func is_subset(a: Dictionary, b: Dictionary) -> bool:
+	for k in b.keys():
+		if not a.has(k): return false
+		if a[k] != b[k]: return false
+	return true
+
 # File utilities
 static func save_json(path: String, data: Dictionary) -> Error:
 	var serialized = JSON.stringify(data)
