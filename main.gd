@@ -49,12 +49,13 @@ func spawn_tank_random() -> void:
 		print("spawn_point: ", spawn_point)
 		if spawn_point.is_free():
 			# Tell everyone to spawn my tank
-			spawn_tank_at.rpc(spawn_point, "Tank-" + str(Lobby.sid()))
+			spawn_tank_at.rpc(spawn_point.get_path(), "Tank-" + str(Lobby.sid()))
 			break
 
 @rpc("reliable", "any_peer", "call_local")
-func spawn_tank_at(spawn_point: Node3D, tank_name: String) -> void:
+func spawn_tank_at(spawn_point_path: NodePath, tank_name: String) -> void:
 	# Spawn the tank
+	var spawn_point = get_node(spawn_point_path)
 	var tank = preload("res://scenes/tank.tscn").instantiate()
 	tank.name = tank_name
 	level.get_node("%Tanks").add_child(tank)
