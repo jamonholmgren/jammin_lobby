@@ -6,6 +6,7 @@ func _ready() -> void:
 	%LeaveLobbyButton.pressed.connect(_on_leave_lobby_pressed)
 	%Username.text_changed.connect(_on_username_changed)
 	%RefreshButton.pressed.connect(_on_refresh_pressed)
+	%StartGameButton.pressed.connect(_on_start_game_pressed)
 
 	Lobby.hosting_started.connect(_on_hosting_started)
 	Lobby.hosting_stopped.connect(_on_hosting_stopped)
@@ -119,9 +120,16 @@ func update_lobby_ui() -> void:
 	Lobby.lm("  --  Players: ", players)
 	JamminList.update_list(%PlayerRows, players, false, update_player_row)
 
+	%StartGameButton.disabled = not (Lobby.i_am_host() and not all_ready())
+	
+func all_ready() -> bool:
+	for player in Lobby.players.values():
+		if not player.get("ready", false): return false
+	return true
+
 func update_player_row(node: Node, player: Dictionary, i: int) -> void:
 	var btn = node.get_node("ReadyButton")
-	btn.text = "Ready" if player.get("ready", false) else "Not Ready"
+	btn.text = "Not Ready" if player.get("ready", false) else "Ready"
 	btn.disabled = true
 	node.get_node("Name").text = player.username
 	node.get_node("Ping").text = str(player.ping) + "us"
@@ -142,9 +150,13 @@ func show_create_lobby():
 	%LobbyInfo.hide()
 
 func _on_ready_pressed() -> void:
-	Lobby.update_me({ ready = !Lobby.me.get("ready", false) })
+	Lobby.update_me({ "ready": !Lobby.me.get("ready", false) })
 
 func _on_lobby_clicked(event: InputEvent, lobby: Dictionary) -> void:
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
 		%JoiningOverlay.show()
 		Lobby.join(lobby)
+
+func _on_start_game_pressed() -> void:
+	if Lobby.i_am_host() and all_ready():
+		Lobby.send_game_event.rpc("start_game")

@@ -34,6 +34,9 @@ signal ping_updated(ping: int)
 # Signals for the chat messages
 signal chat_messages_updated()
 
+# Signals for the host to trigger via 
+signal game_event(command: String)
+
 # Constants **********************************************************
 
 const SERVER_ID := MultiplayerPeer.TARGET_PEER_SERVER
@@ -457,6 +460,13 @@ func on_ask(req_name: String, callback: Callable = request.no_op): request.on_as
 func remove_on_ask(req_name: String): request.remove_on_ask(req_name)
 func ask(pid: int, req_name: String, data: Dictionary) -> Variant: return await request.ask(pid, req_name, data)
 func broadcast(req_name: String, data: Dictionary = {}) -> void: request.broadcast(req_name, data)
+
+# The host can send to all clients "game events" via this signal.
+# It's kind of an all-purpose communication signal.
+@rpc("authority", "reliable", "call_local")
+func send_game_event(command: String, data: Dictionary = {}) -> void:
+	if not sid() > 0: return pe("send_game_event should be sent via .rpc()")
+	game_event.emit(command, data)
 
 # Chat methods *******************************************************************
 

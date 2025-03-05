@@ -1,6 +1,7 @@
-[gd_scene load_steps=8 format=3 uid="uid://d3pjxi6563ipv"]
+[gd_scene load_steps=10 format=3 uid="uid://d3pjxi6563ipv"]
 
 [ext_resource type="PackedScene" uid="uid://damsrqwlonlca" path="res://scenes/tank.tscn" id="1_uknb0"]
+[ext_resource type="Script" path="res://scenes/spawn_point.gd" id="2_a7mro"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_jqy14"]
 sky_horizon_color = Color(0.64625, 0.65575, 0.67075, 1)
@@ -23,6 +24,9 @@ albedo_color = Color(0.312466, 0.312466, 0.312466, 1)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_52x48"]
 albedo_color = Color(1, 0.537255, 0.313726, 1)
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_f5u8g"]
+radius = 25.0
 
 [node name="Level" type="Node3D"]
 
@@ -151,3 +155,79 @@ transform = Transform3D(-1, 0, 8.74228e-08, 0, 1, 0, -8.74228e-08, 0, -1, -40, 3
 use_collision = true
 size = Vector3(6, 6, 48)
 material = SubResource("StandardMaterial3D_52x48")
+
+[node name="SpawnPoints" type="Node3D" parent="."]
+
+[node name="SpawnPoint1" type="Area3D" parent="SpawnPoints" groups=["spawn_points"]]
+transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, -78.3209, 2.16271, 75.3803)
+collision_layer = 0
+collision_mask = 2
+monitorable = false
+priority = -10
+script = ExtResource("2_a7mro")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="SpawnPoints/SpawnPoint1"]
+shape = SubResource("SphereShape3D_f5u8g")
+
+[node name="SpawnPoint2" type="Area3D" parent="SpawnPoints" groups=["spawn_points"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 17.2332, 2.16271, 76.4482)
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("2_a7mro")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="SpawnPoints/SpawnPoint2"]
+shape = SubResource("SphereShape3D_f5u8g")
+
+[node name="SpawnPoint3" type="Area3D" parent="SpawnPoints" groups=["spawn_points"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 75.3033, 2.16271, 75.6731)
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("2_a7mro")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="SpawnPoints/SpawnPoint3"]
+shape = SubResource("SphereShape3D_f5u8g")
+
+[node name="SpawnPoint4" type="Area3D" parent="SpawnPoints" groups=["spawn_points"]]
+transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, 69.4209, 2.16271, -75.2138)
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("2_a7mro")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="SpawnPoints/SpawnPoint4"]
+shape = SubResource("SphereShape3D_f5u8g")
+
+[node name="SpawnPoint5" type="Area3D" parent="SpawnPoints" groups=["spawn_points"]]
+transform = Transform3D(-1, 0, -8.74228e-08, 0, 1, 0, 8.74228e-08, 0, -1, -71.0855, 2.16271, -75.2138)
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("2_a7mro")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="SpawnPoints/SpawnPoint5"]
+shape = SubResource("SphereShape3D_f5u8g")
+
+[node name="SpawnPoint6" type="Area3D" parent="SpawnPoints" groups=["spawn_points"]]
+transform = Transform3D(1.31134e-07, 0, -1, 0, 1, 0, 1, 0, 1.31134e-07, -61.4003, 2.16271, 17.0543)
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("2_a7mro")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="SpawnPoints/SpawnPoint6"]
+shape = SubResource("SphereShape3D_f5u8g")
+
+[node name="SpawnPoint7" type="Area3D" parent="SpawnPoints" groups=["spawn_points"]]
+transform = Transform3D(1.31134e-07, 0, -1, 0, 1, 0, 1, 0, 1.31134e-07, -19.5919, 2.16271, -31.019)
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("2_a7mro")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="SpawnPoints/SpawnPoint7"]
+shape = SubResource("SphereShape3D_f5u8g")
+
+[node name="SpawnPoint8" type="Area3D" parent="SpawnPoints" groups=["spawn_points"]]
+transform = Transform3D(-2.18557e-07, 0, 1, 0, 1, 0, -1, 0, -2.18557e-07, 52.4769, 2.16271, -0.615307)
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("2_a7mro")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="SpawnPoints/SpawnPoint8"]
+shape = SubResource("SphereShape3D_f5u8g")
