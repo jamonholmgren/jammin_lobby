@@ -9,6 +9,7 @@ func _ready() -> void:
 	menu = get_node("JamminLobbyUI")
 	Lobby.me.username = USER_NAMES[randi() % USER_NAMES.size()]
 	Lobby.game_event.connect(_on_game_event)
+	Lobby.update_me({ "ready": false })
 
 func _input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_cancel"):
