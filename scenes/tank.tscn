@@ -43,10 +43,17 @@ properties/9/replication_mode = 0
 properties/10/path = NodePath("tank/Main/RotationPoint/RotationPoint2/Camera3D:rotation")
 properties/10/spawn = false
 properties/10/replication_mode = 0
+properties/11/path = NodePath("tank/Main/RotationPoint:rotation")
+properties/11/spawn = true
+properties/11/replication_mode = 1
+properties/12/path = NodePath("tank/Main/RotationPoint/RotationPoint2:rotation")
+properties/12/spawn = true
+properties/12/replication_mode = 1
 
 [node name="Tank" type="VehicleBody3D"]
 collision_layer = 0
 script = ExtResource("1_4piap")
+pid = null
 
 [node name="tank" parent="." instance=ExtResource("1_6lxbk")]
 
