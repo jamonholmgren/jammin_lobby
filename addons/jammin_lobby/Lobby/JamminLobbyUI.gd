@@ -120,7 +120,7 @@ func update_lobby_ui() -> void:
 	Lobby.lm("  --  Players: ", players)
 	JamminList.update_list(%PlayerRows, players, false, update_player_row)
 
-	%StartGameButton.disabled = not (Lobby.i_am_host() and not all_ready())
+	%StartGameButton.disabled = not (Lobby.i_am_host() and all_ready())
 	
 func all_ready() -> bool:
 	for player in Lobby.players.values():
@@ -129,7 +129,7 @@ func all_ready() -> bool:
 
 func update_player_row(node: Node, player: Dictionary, i: int) -> void:
 	var btn = node.get_node("ReadyButton")
-	btn.text = "Not Ready" if player.get("ready", false) else "Ready"
+	btn.text = "Ready" if player.get("ready", false) else "Not Ready"
 	btn.disabled = true
 	node.get_node("Name").text = player.username
 	node.get_node("Ping").text = str(player.ping) + "us"
