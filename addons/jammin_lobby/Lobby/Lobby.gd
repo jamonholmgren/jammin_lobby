@@ -28,6 +28,9 @@ signal discovery_server_failed(error: int)
 signal discovery_server_stopped()
 signal lobbies_refreshed(lobbies: Dictionary)
 
+# Signals for the ping
+signal ping_updated(ping: int)
+
 # Signals for the chat messages
 signal chat_messages_updated()
 
@@ -61,7 +64,8 @@ const DEFAULT_PLAYER_DATA: Dictionary = {
 	"id": 0,
 	"username": "",
 	"in_lobby": false,
-	"host": false
+	"host": false,
+	"ping": 0
 }
 
 # This is a dictionary of all players in the lobby
@@ -76,6 +80,7 @@ var me: Dictionary
 
 var found_lobbies: Dictionary = {}
 var refreshing := false
+var ping_start: int = 0
 
 # Lifecycle ***********************************************************************
 
@@ -183,11 +188,11 @@ func stop_hosting(msg: String = "Game ended by host"):
 	stop_server("Game ended by host; " + msg)	
 
 func close_game_peer():
-	assert(multiplayer, "No multiplayer available!")
+	update_me({ "host": false, "in_lobby": false })
 	
 	if multiplayer.multiplayer_peer and multiplayer.multiplayer_peer is ENetMultiplayerPeer:
 		multiplayer.multiplayer_peer.close()
-
+	
 	# We set to OfflineMultiplayerPeer rather than to null.
 	# This prevents errors like "No multiplayer peer is assigned"
 	# that happen when you access things like get_multiplayer_authority()
@@ -206,6 +211,7 @@ func start_server() -> void:
 	multiplayer.multiplayer_peer = peer
 	
 	# Manually signal because Godot doesn't provide signals for server start
+	update_me({ "host": true, "in_lobby": true })
 	hosting_started.emit()
 	me_connecting_to_lobby.emit()
 	sync_me_with_host()
@@ -245,11 +251,13 @@ func start_server_failed(error: int) -> void:
 	var msg = str(error)
 	if error == ERR_CANT_CREATE: msg = "Is port %s already in use?" % config.game_port
 	push_error("Error starting server (" + str(error) + "): " + msg)
+	update_me({ "host": false, "in_lobby": false })
 	hosting_failed.emit(msg)
 
 func stop_server(message: String):
 	if not i_am_host(): return
 	close_game_peer()
+	update_me({ "host": false, "in_lobby": false })
 	me_left_lobby.emit(message)
 	hosting_stopped.emit(message)
 
@@ -280,7 +288,7 @@ func start_discovery() -> void:
 		lm("Lobby: Discovery server failed to bind: ", result, " on port ", config.broadcast_port)
 		discovery_server_failed.emit(result)
 		return
-	set_process(true) # start listening for pings
+	set_process(true) # start listening for requests
 	discovery_server_started.emit()
 
 func stop_discovery():
@@ -294,12 +302,12 @@ func check_for_clients_discovery() -> void:
 	if not discovery_server.is_bound(): return pe("Lobby: Discovery server not bound!")
 	if discovery_server.get_available_packet_count() == 0: return
 
-	var ping = {
+	var req = {
 		"data": discovery_server.get_packet().get_string_from_ascii(),
 		"ip": discovery_server.get_packet_ip(),
 		"port": discovery_server.get_packet_port()
 	}
-	if ping.data != refresh_packet(): return
+	if req.data != refresh_packet(): return
 
 	var response = {
 		"game_name": game_name,
@@ -311,8 +319,7 @@ func check_for_clients_discovery() -> void:
 	}
 	var response_string = JSON.stringify(response)
 
-	# lm("Sending response: ", response, " to ", ping.ip, ":", ping.port)
-	discovery_server.set_dest_address(ping.ip, ping.port)
+	discovery_server.set_dest_address(req.ip, req.port)
 	discovery_server.put_packet(response_string.to_ascii_buffer())
 
 # Client Actions *******************************************************************
@@ -320,7 +327,6 @@ func check_for_clients_discovery() -> void:
 # This is called by the host to make sure all clients have the same player data
 @rpc("authority", "reliable", "call_local")
 func update_players_from_host(updated_players: Dictionary):
-
 	# Track the active players so we can remove inactive ones
 	var active_players: Array[int] = []
 	
@@ -390,19 +396,19 @@ func find_lobbies(callback: Callable = func(_lobbies: Dictionary, _error: String
 	while discovery_server.get_available_packet_count() > 0:
 		var packet = discovery_server.get_packet()
 		var decoded = packet.get_string_from_utf8()
-		var ping = {
+		var req = {
 			"data": decoded,
 			"ip": discovery_server.get_packet_ip(),
 			"port": discovery_server.get_packet_port()
 		}
-		if ping.ip == "" or ping.data == refresh_packet(): continue
+		if req.ip == "" or req.data == refresh_packet(): continue
 
-		var server_info_parsed = JSON.parse_string(ping.data)
+		var server_info_parsed = JSON.parse_string(req.data)
 
-		server_info_parsed["ip"] = ping.ip
-		server_info_parsed["port"] = ping.port
+		server_info_parsed["ip"] = req.ip
+		server_info_parsed["port"] = req.port
 
-		found_lobbies[ping.ip] = server_info_parsed
+		found_lobbies[req.ip] = server_info_parsed
 	
 	discovery_server.close()
 	refreshing = false
@@ -563,6 +569,24 @@ func is_client() -> bool: return status() == &"Connected"
 func is_authority(node: Node) -> bool: return online() and node.is_multiplayer_authority()
 func is_me(p: Dictionary) -> bool: return p and me.id == p.id
 
+func update_ping() -> void:
+	if not online(): return
+	ping_start = Time.get_ticks_usec()
+	ping_server.rpc_id(sid())
+
+@rpc("any_peer", "reliable", "call_local")
+func ping_server() -> void:
+	pong_client.rpc_id(sid())
+
+@rpc("authority", "reliable", "call_local")
+func pong_client() -> void:
+	if not ping_start: return
+
+	# We divide by 2 because the ping is sent and received
+	me.ping = (Time.get_ticks_usec() - ping_start) / 2
+	ping_start = 0
+	ping_updated.emit(me.ping)
+
 # Signal Handlers ***************************************************************
 
 # When I connect to a lobby, I want to send
@@ -572,8 +596,8 @@ func _on_connection_succeeded():
 	me_connecting_to_lobby.emit()
 	sync_me_with_host()
 
-# I tried to join a lobby, but it failed for some
-# reason. Only called on clients.
+# We tried to join a lobby, but it failed for some reason.
+# Only called on clients.
 func _on_connection_failed(reason: String = ""):
 	lm("_on_connection_failed: ", reason)
 	me_left_lobby.emit(reason)
@@ -595,8 +619,8 @@ func _on_peer_connected(pid: int):
 		# I joined a server
 		lm(" - _on_peer_connected: ", pid)
 		me_connecting_to_lobby.emit()
-		# Send my player data to the new peer
-		update_player_data.rpc_id(pid, me)
+		# This will update me as well as send my data to the host
+		update_me({ "in_lobby": true })
 	else:
 		# I am the server and someone else is connecting to me
 		# This shouldn't happen unless I'm the host
@@ -631,5 +655,3 @@ func _on_any_peer_connected(pid: int):
 # - and remove it from the host players list
 func _on_any_peer_disconnected(pid: int):
 	host_remove_by_pid(pid)
-
-# Endpoints ***************************************************************

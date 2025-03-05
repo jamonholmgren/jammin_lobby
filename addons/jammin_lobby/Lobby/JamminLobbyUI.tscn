@@ -230,12 +230,18 @@ layout_mode = 2
 
 [node name="PlayerRow" type="HBoxContainer" parent="MarginContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/Sidebar/MarginContainer/LobbyInfo/PlayerRows"]
 layout_mode = 2
+theme_override_constants/separation = 25
 
 [node name="Name" type="Label" parent="MarginContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/Sidebar/MarginContainer/LobbyInfo/PlayerRows/PlayerRow"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 20
 text = "Jammin"
+
+[node name="Ping" type="Label" parent="MarginContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/Sidebar/MarginContainer/LobbyInfo/PlayerRows/PlayerRow"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "-"
 
 [node name="ReadyButton" type="Button" parent="MarginContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/Sidebar/MarginContainer/LobbyInfo/PlayerRows/PlayerRow"]
 layout_mode = 2

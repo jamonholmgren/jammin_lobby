@@ -24,6 +24,10 @@ func _ready() -> void:
 	%JoiningOverlay.hide()
 	update_lobby_ui()
 
+func _physics_process(_delta: float) -> void:
+	# Every 5 seconds, update the ping if we're online
+	if Engine.get_physics_frames() % (1 * 60) == 0 and Lobby.online() : Lobby.update_ping()
+
 func _on_create_lobby_pressed() -> void:
 	Lobby.start_hosting()
 
@@ -118,6 +122,7 @@ func update_player_row(node: Node, player: Dictionary, i: int) -> void:
 	btn.text = "Ready" if player.get("ready", false) else "Not Ready"
 	btn.disabled = true
 	node.get_node("Name").text = player.username
+	node.get_node("Ping").text = str(player.ping) + "us"
 	if player.id == Lobby.me.id:
 		Lobby.cs(btn, "pressed", _on_ready_pressed)
 		btn.disabled = false
