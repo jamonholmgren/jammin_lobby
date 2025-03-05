@@ -583,7 +583,8 @@ func pong_client() -> void:
 	if not ping_start: return
 
 	# We divide by 2 because the ping is sent and received
-	me.ping = (Time.get_ticks_usec() - ping_start) / 2
+	var new_ping = (Time.get_ticks_usec() - ping_start) / 2
+	update_me({ "ping": new_ping })
 	ping_start = 0
 	ping_updated.emit(me.ping)
 
