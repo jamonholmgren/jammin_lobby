@@ -66,13 +66,11 @@ func backup():
 func test_restore_options(loc: String):
 	# Test restoring the options, make sure it ends up being the same as current
 	var restored = FileUtils.load_json(loc)
-	for key in data:
-		if not restored.has(key) or data[key] != restored[key]:
-			# Something went wrong; restore from a backup if it exists
-			var bkp = loc + ".backup.json"
-			FileUtils.copy_file(bkp, loc)
-			pe("Lobby: tested options restore, but they didn't match!\n", key, ":\nCurrent: ", data[key], "\nBackup:  ", restored[key])
-			return ERR_INVALID_DATA
+	if not FileUtils.is_eq(data, restored):
+		# Something went wrong; restore from a backup if it exists
+		var bkp = loc + ".backup.json"
+		FileUtils.copy_file(bkp, loc)
+		return ERR_INVALID_DATA
 	return OK
 
 func problem(message: String) -> JamminOptions:

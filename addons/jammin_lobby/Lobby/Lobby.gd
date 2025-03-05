@@ -578,7 +578,7 @@ func update_ping() -> void:
 func ping_server() -> void:
 	pong_client.rpc_id(sid())
 
-@rpc("authority", "reliable", "call_local")
+@rpc("any_peer", "reliable", "call_local")
 func pong_client() -> void:
 	if not ping_start: return
 

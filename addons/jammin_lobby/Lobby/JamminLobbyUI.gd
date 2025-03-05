@@ -21,6 +21,7 @@ func _ready() -> void:
 	Lobby.discovery_server_failed.connect(_on_discovery_server_failed)
 	Lobby.discovery_server_stopped.connect(_on_discovery_server_stopped)
 	Lobby.lobbies_refreshed.connect(_on_lobbies_refreshed)
+	Lobby.ping_updated.connect(_on_ping_updated)
 	%JoiningOverlay.hide()
 	update_lobby_ui()
 
@@ -47,6 +48,8 @@ func _on_refresh_pressed() -> void:
 	%RefreshButton.text = "Refreshing..."
 	%RefreshButton.disabled = true
 
+	Lobby.update_ping()
+
 func _on_lobbies_refreshed(lobbies: Dictionary, error: String = "") -> void:
 	%RefreshButton.disabled = false
 	if error:
@@ -54,6 +57,9 @@ func _on_lobbies_refreshed(lobbies: Dictionary, error: String = "") -> void:
 	else:
 		%RefreshButton.text = "Refresh"
 	
+	update_lobby_ui()
+
+func _on_ping_updated(ping: int) -> void:
 	update_lobby_ui()
 
 func _on_hosting_stopped(_msg: String = "") -> void:

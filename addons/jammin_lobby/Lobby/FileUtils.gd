@@ -12,7 +12,12 @@ static func is_eq(a: Dictionary, b: Dictionary) -> bool:
 	a_keys.sort()
 	b_keys.sort()
 	if a_keys.size() != b_keys.size(): return false
-	for k in a_keys: if a[k] != b[k]: return false
+	for k in a_keys:
+		if a[k] is Dictionary:
+			# Check down the tree
+			if not is_eq(a[k], b[k]): return false
+		elif a[k] != b[k]:
+			return false
 	return true
 
 # Check if a is a subset of b
