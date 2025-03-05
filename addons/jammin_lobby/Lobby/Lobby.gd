@@ -98,6 +98,8 @@ func _ready() -> void:
 		restored_data_keys.sort()
 		for key in restored_data_keys:
 			me[key] = restored_data[key]
+		# Reset some values that shouldn't be persisted
+		me.merge({ "ready": false, "in_lobby": false, "host": false }, true)
 
 	setup_multiplayer()
 	setup_request()
