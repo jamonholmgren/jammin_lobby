@@ -463,10 +463,13 @@ func remove_on_ask(req_name: String): request.remove_on_ask(req_name)
 func ask(pid: int, req_name: String, data: Dictionary) -> Variant: return await request.ask(pid, req_name, data)
 func broadcast(req_name: String, data: Dictionary = {}) -> void: request.broadcast(req_name, data)
 
+func send_game_event(command: String, data: Dictionary = {}) -> void:
+	_send_game_event.rpc_id(sender_id(), command, data)
+
 # The host can send to all clients "game events" via this signal.
 # It's kind of an all-purpose communication signal.
 @rpc("authority", "reliable", "call_local")
-func send_game_event(command: String, data: Dictionary = {}) -> void:
+func _send_game_event(command: String, data: Dictionary = {}) -> void:
 	if not sender_id() > 0: return pe("send_game_event should be sent via .rpc()")
 	game_event.emit(command, data)
 

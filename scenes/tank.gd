@@ -15,7 +15,6 @@ const ENGINE_POWER = 4000
 const ROTATION_SPEED = 3.0  # Adjust for smoother or snappier rotation
 
 func _physics_process(delta: float) -> void:
-	%Crosshair.position = get_viewport().get_size() / 2
 	turret.rotation.y = lerp_angle(turret.rotation.y, r1.rotation.y, ROTATION_SPEED * delta)
 	
 	if Lobby.id() != get_multiplayer_authority(): return
@@ -44,9 +43,7 @@ func _input(event: InputEvent) -> void:
 		r2.rotate_x(event.relative.y * 0.005)
 		r2.rotation.x = clamp(r2.rotation.x, -1.5, 1.5)
 		
-	# TODO: Add button to fire weapon, and then call fire()
-	if event.is_action_pressed("fire"):
-		fire()
+	if event.is_action_pressed("fire"): fire()
 
 # Firing weapon
 func fire() -> void:
@@ -56,10 +53,8 @@ func fire() -> void:
 
 @rpc("reliable", "any_peer", "call_local")
 func spawn_bullet() -> void:
-	# TODO: Implement bullet spawning
-	pass
 	var bullet = preload("res://scenes/bullet.tscn").instantiate()
 	bullet.global_transform = bullet_spawn.global_transform
-	#bullet.set_multiplayer_authority(Lobby.sid())
+	bullet.set_multiplayer_authority(Lobby.sender_id())
 	bullet.linear_velocity = bullet_spawn.global_transform.basis.z * bullet_speed
 	get_tree().current_scene.add_child(bullet)

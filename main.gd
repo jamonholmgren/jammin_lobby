@@ -2,6 +2,7 @@ class_name Main extends Node3D
 
 static var menu: JamminLobbyUI
 static var level: Node3D
+static var hud: Control
 
 const USER_NAMES = [ "Chainsaw", "Hammer", "Axe", "Crusher", "Dumptruck", "Volcano", "Thunder" ]
 
@@ -9,6 +10,7 @@ const USER_NAMES = [ "Chainsaw", "Hammer", "Axe", "Crusher", "Dumptruck", "Volca
 func _ready() -> void:
 	menu = get_node("JamminLobbyUI")
 	level = get_node("Level")
+	hud = get_node("HUD")
 	Lobby.me.username = USER_NAMES[randi() % USER_NAMES.size()]
 	Lobby.game_event.connect(_on_game_event)
 
@@ -22,10 +24,12 @@ func _input(event: InputEvent) -> void:
 func show_menu() -> void:
 	menu.show()
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	hud.hide()
 
 func hide_menu() -> void:
 	menu.hide()
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	hud.show()
 
 func _on_game_event(command: String, _data: Dictionary = {}) -> void:
 	if command == "start_game":

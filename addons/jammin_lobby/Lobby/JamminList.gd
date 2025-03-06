@@ -20,7 +20,7 @@ static func update_list(node_parent: Node, items: Array[Variant], header: bool, 
 	var n_items := items.size()
 	var arity := update_func.get_argument_count()
 	
-	if n_nodes < 1: push_error(ER_NO_TEMPLATE_ROW % "update_list"); return
+	if n_nodes < 1: push_error(JamminErrors.NO_TEMPLATE_ROW % "update_list"); return
 	
 	# Update existing rows and add new ones, and delete extra rows (down to 1; leave at least the template row)
 	for i in range(max(n_nodes, n_items)):
@@ -35,7 +35,7 @@ static func update_list(node_parent: Node, items: Array[Variant], header: bool, 
 			node = template_row.duplicate()
 			node_parent.add_child(node)
 
-		assert(arity == 3 or arity == 2, ER_INVALID_ARITY % ["update_list", arity])
+		assert(arity == 3 or arity == 2, JamminErrors.INVALID_ARITY % ["update_list", arity])
 
 		if arity == 3: update_func.call(node, items[i], i)
 		elif arity == 2: update_func.call(node, items[i])
@@ -52,8 +52,8 @@ static func update_grid(grid: GridContainer, items: Array[Variant], header: bool
 	var arity := update_func.get_argument_count()
 	var template_row: Array[Node] = []
 	
-	assert(n_rows >= 1, ER_NO_TEMPLATE_ROW % "update_grid")
-	assert(arity == 3 or arity == 2, ER_INVALID_ARITY % ["update_grid", arity])
+	assert(n_rows >= 1, JamminErrors.NO_TEMPLATE_ROW % "update_grid")
+	assert(arity == 3 or arity == 2, JamminErrors.INVALID_ARITY % ["update_grid", arity])
 
 	for i in range(max(n_rows, n_items)):
 		var item: Variant = items[i] if i < n_items else null
@@ -79,8 +79,4 @@ static func update_grid(grid: GridContainer, items: Array[Variant], header: bool
 		if not item: continue
 		if arity == 3: update_func.call(row_nodes, item, i)
 		elif arity == 2: update_func.call(row_nodes, item)
-
-# Error messages
-const ER_NO_TEMPLATE_ROW = "UIUtils.%s(node, item, i): Must have at least one template row, but got an empty array."
-const ER_INVALID_ARITY = "UIUtils.%s(node, item, i): must accept 2 or 3 arguments, but got %s"
 

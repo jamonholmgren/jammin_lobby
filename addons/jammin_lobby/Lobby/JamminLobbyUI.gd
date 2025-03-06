@@ -23,7 +23,15 @@ func _ready() -> void:
 	Lobby.discovery_server_stopped.connect(_on_discovery_server_stopped)
 	Lobby.lobbies_refreshed.connect(_on_lobbies_refreshed)
 	Lobby.ping_updated.connect(_on_ping_updated)
+
 	%JoiningOverlay.hide()
+
+	UIScale.enable(Vector2(1920, 1080), {
+		UIScale.Config.UPDATE_RATE: 0.01,
+		UIScale.Config.MIN_UI_SCALE: 0.5,
+		UIScale.Config.MAX_UI_SCALE: 2.0
+	})
+	
 	update_lobby_ui()
 
 func _on_create_lobby_pressed() -> void:
@@ -127,7 +135,7 @@ func all_ready() -> bool:
 		if not player.get("ready", false): return false
 	return true
 
-func update_player_row(node: Node, player: Dictionary, i: int) -> void:
+func update_player_row(node: Node, player: Dictionary, _i: int) -> void:
 	var btn = node.get_node("ReadyButton")
 	btn.text = "Ready" if player.get("ready", false) else "Not Ready"
 	btn.disabled = true
@@ -137,7 +145,7 @@ func update_player_row(node: Node, player: Dictionary, i: int) -> void:
 		Lobby.cs(btn, "pressed", _on_ready_pressed)
 		btn.disabled = false
 
-func update_lobby_row(nodes: Array[Node], lobby: Dictionary, i: int) -> void:
+func update_lobby_row(nodes: Array[Node], lobby: Dictionary, _i: int) -> void:
 	nodes[0].text = lobby.lobby_name
 	nodes[1].text = lobby.game_version
 	nodes[2].text = str(lobby.players) + " / " + str(lobby.max_players)
@@ -159,4 +167,4 @@ func _on_lobby_clicked(event: InputEvent, lobby: Dictionary) -> void:
 
 func _on_start_game_pressed() -> void:
 	if Lobby.i_am_host() and all_ready():
-		Lobby.send_game_event.rpc("start_game")
+		Lobby.send_game_event("start_game")

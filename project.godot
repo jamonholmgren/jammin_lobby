@@ -20,6 +20,7 @@ config/icon="res://icon.svg"
 
 Lobby="*res://addons/jammin_lobby/Lobby/Lobby.gd"
 Options="*res://addons/jammin_lobby/Lobby/Options.gd"
+UIScale="*res://addons/jammin_lobby/Lobby/UIScale.gd"
 
 [display]
 
@@ -67,3 +68,7 @@ fire={
 
 3d_physics/layer_1="Obstacles"
 3d_physics/layer_2="Tanks"
+
+[physics]
+
+3d/physics_engine="Jolt Physics"
