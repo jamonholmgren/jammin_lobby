@@ -15,3 +15,11 @@ height = 2.0
 [node name="Explosion" type="MeshInstance3D"]
 mesh = SubResource("SphereMesh_3oo6d")
 script = ExtResource("1_17npe")
+
+[node name="OmniLight3D" type="OmniLight3D" parent="."]
+light_color = Color(0.982708, 0.975064, 0.770499, 1)
+light_energy = 3.175
+light_indirect_energy = 1.725
+light_volumetric_fog_energy = 5.272
+omni_range = 50.0
+omni_attenuation = 0.5

@@ -23,11 +23,17 @@ func _ready() -> void:
 
 func _physics_process(delta: float) -> void:
 	rotate_toward_target(delta)
+	%EngineAudio.pitch_scale = (linear_velocity.length() / 100.0) + 0.5
 
+	# Only the host for this tank can move it, and only if the menu is not visible
 	if Lobby.id() != get_multiplayer_authority(): return
+	if Main.menu.visible: return
+	
+	# TODO: Allow turning when stopped somehow (torque is ok, but not great)
+	# apply_torque(Vector3.UP * Input.get_axis("right", "left") * 35000.0)
+
 	steering = move_toward(steering, Input.get_axis("right", "left") * MAX_STEER, delta * 10)
 	engine_force = Input.get_axis("back", "forward") * ENGINE_POWER
-	%EngineAudio.pitch_scale = (linear_velocity.length() / 100.0) + 0.5
 	
 	if Engine.get_physics_frames() % 10 == 0: update_target_position()
 

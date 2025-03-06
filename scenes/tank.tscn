@@ -59,7 +59,7 @@ properties/13/spawn = true
 properties/13/replication_mode = 1
 
 [node name="Tank" type="VehicleBody3D"]
-collision_layer = 0
+collision_layer = 2
 mass = 1000.0
 script = ExtResource("1_4piap")
 

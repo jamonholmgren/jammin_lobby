@@ -14,6 +14,17 @@ background_mode = 2
 sky = SubResource("Sky_uvg2w")
 tonemap_mode = 2
 glow_enabled = true
+fog_enabled = true
+fog_mode = 1
+fog_light_color = Color(0.294118, 0.317647, 0.45098, 1)
+fog_light_energy = 0.09
+fog_sun_scatter = 0.06
+fog_density = 1.0
+fog_depth_curve = 1.1487
+fog_depth_begin = 150.0
+fog_depth_end = 250.0
+volumetric_fog_enabled = true
+volumetric_fog_density = 0.001
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_0tuir"]
 albedo_color = Color(0.237539, 0.237539, 0.237539, 1)
@@ -32,8 +43,39 @@ radius = 25.0
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_b4w6i")
 
+[node name="SpotLight3D" type="SpotLight3D" parent="WorldEnvironment"]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 60.1326, 26.1122, 34.5931)
+spot_range = 75.807
+spot_attenuation = -0.26
+spot_angle = 64.51
+
+[node name="SpotLight3D2" type="SpotLight3D" parent="WorldEnvironment"]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, -63.5801, 26.1122, 57.7481)
+spot_range = 75.807
+spot_attenuation = -0.26
+spot_angle = 64.51
+
+[node name="SpotLight3D3" type="SpotLight3D" parent="WorldEnvironment"]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, -16.2194, 26.1122, 3.41883)
+spot_range = 75.807
+spot_attenuation = -0.26
+spot_angle = 64.51
+
+[node name="SpotLight3D4" type="SpotLight3D" parent="WorldEnvironment"]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, -63.2961, 26.1122, -31.9591)
+spot_range = 75.807
+spot_attenuation = -0.26
+spot_angle = 64.51
+
+[node name="SpotLight3D5" type="SpotLight3D" parent="WorldEnvironment"]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 27.6318, 26.1122, -46.7353)
+spot_range = 75.807
+spot_attenuation = -0.26
+spot_angle = 64.51
+
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
 transform = Transform3D(-0.866023, -0.433016, 0.250001, 0, 0.499998, 0.866027, -0.500003, 0.749999, -0.43301, 0, 0, 0)
+visible = false
 shadow_enabled = true
 
 [node name="Obstacles" type="Node3D" parent="."]

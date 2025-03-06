@@ -1,6 +1,20 @@
 extends Camera3D
 
 var ray_range = 20
+var max_zoom = 40.0 # FOV
+var min_zoom = 75.0 # FOV
+var target_fov = min_zoom
+
+func _input(event: InputEvent) -> void:
+	# If it's the left shift button, smoothly zoom to max zoom
+	if event.is_action_pressed("zoom_in"):
+		target_fov = max_zoom
+	# If it's the right shift button, smoothly zoom to min zoom
+	elif event.is_action_released("zoom_in"):
+		target_fov = min_zoom
+
+func _process(delta: float) -> void:
+	fov = lerp(fov, target_fov, delta * 10.0)
 
 func get_camera_collision() -> Vector3:
 	var center = get_viewport().get_size() / 2 / UIScale.scale()
