@@ -26,10 +26,19 @@ func cancel_timer() -> void:
 
 @rpc("reliable", "any_peer", "call_local")
 func spawn_explosion(location: Vector3) -> void:
+  visible = false
+  set_physics_process(false)
   cancel_timer()
 
-  Game.play_audio_3d(load("res://assets/impact.mp3"), location)
-  
   Game.spawn_at(preload("res://scenes/explosion.tscn"), location)
+
+  var distance := global_transform.origin.distance_to(location)
+  var speed_of_sound := 343.0
+  var time_to_impact := distance / speed_of_sound
+
+  await get_tree().create_timer(time_to_impact).timeout
+
+  # play audio
+  Game.play_audio_3d(load("res://assets/impact.mp3"), location)
   queue_free()
 

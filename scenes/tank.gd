@@ -1,4 +1,6 @@
-extends VehicleBody3D
+class_name Tank extends VehicleBody3D
+
+var me: Tank
 
 @export var pid: int
 
@@ -14,6 +16,10 @@ extends VehicleBody3D
 const MAX_STEER = 0.9
 const ENGINE_POWER = 4000
 const ROTATION_SPEED = 3.0  # Adjust for smoother or snappier rotation
+
+func _ready() -> void:
+	# The first tank to spawn is us
+	me = self
 
 func _physics_process(delta: float) -> void:
 	rotate_toward_target(delta)
@@ -54,6 +60,9 @@ func fire() -> void:
 	# Only the host for this tank can fire
 	if Lobby.id() != get_multiplayer_authority(): return
 	spawn_bullet.rpc(bullet_spawn.global_transform, bullet_spawn.global_transform.basis.z * bullet_speed)
+
+	# Apply a force to the tank to knock it back
+	apply_central_impulse(-bullet_spawn.global_transform.basis.z * bullet_speed * 50.0)
 
 @rpc("reliable", "any_peer", "call_local")
 func spawn_bullet(start_transform: Transform3D, start_velo: Vector3) -> void:
