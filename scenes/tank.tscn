@@ -1,9 +1,9 @@
 [gd_scene load_steps=9 format=3 uid="uid://damsrqwlonlca"]
 
-[ext_resource type="Script" path="res://scenes/tank.gd" id="1_4piap"]
+[ext_resource type="Script" uid="uid://cju4lvl11s0vj" path="res://scenes/tank.gd" id="1_4piap"]
 [ext_resource type="Texture2D" uid="uid://c4ficojtcsj62" path="res://assets/cursorcirclewhite.png" id="2_0n77f"]
 [ext_resource type="PackedScene" uid="uid://7fcqwu6k3e4x" path="res://assets/tank.glb" id="2_ibak5"]
-[ext_resource type="Script" path="res://scenes/tank_camera.gd" id="3_ikjma"]
+[ext_resource type="Script" uid="uid://d04mbnk6srgin" path="res://scenes/tank_camera.gd" id="3_ikjma"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_r72yb"]
 albedo_color = Color(0.288518, 0.288518, 0.288518, 1)

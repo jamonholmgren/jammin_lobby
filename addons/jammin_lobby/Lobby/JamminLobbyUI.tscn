@@ -1,7 +1,7 @@
 [gd_scene load_steps=3 format=3 uid="uid://bdv22q10r4trl"]
 
-[ext_resource type="Script" path="res://addons/jammin_lobby/Lobby/JamminLobbyUI.gd" id="1_0kqi4"]
-[ext_resource type="Script" path="res://addons/jammin_lobby/Lobby/JamminControl.gd" id="2_02mob"]
+[ext_resource type="Script" uid="uid://bnyqc6s4yghve" path="res://addons/jammin_lobby/Lobby/JamminLobbyUI.gd" id="1_0kqi4"]
+[ext_resource type="Script" uid="uid://jrc680fqrmi5" path="res://addons/jammin_lobby/Lobby/JamminControl.gd" id="2_02mob"]
 
 [node name="JamminLobbyUI" type="Control"]
 layout_mode = 3
