@@ -22,8 +22,8 @@ func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
   var other_body: Node3D = state.get_contact_collider_object(0)
 
   # Knock back the other body if it's a CollisionObject3D
-  if other_body is CollisionObject3D:
-    other_body.apply_central_impulse(global_transform.basis.z * linear_velocity.length() * 100.0)
+  if other_body is PhysicsBody3D:
+    other_body.apply_central_impulse(global_transform.basis.z * linear_velocity.length() * 10000.0)
   
   spawn_explosion.rpc(global_transform.origin)
 
