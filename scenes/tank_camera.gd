@@ -15,7 +15,7 @@ func get_camera_collision():
 	var intersection = get_world_3d().direct_space_state.intersect_ray(new_intersection)
 	
 	if not intersection.is_empty():
-		print(intersection.collider.name)
+		#print(intersection.collider.name)
 		return intersection.position
 	else:
 		return null
