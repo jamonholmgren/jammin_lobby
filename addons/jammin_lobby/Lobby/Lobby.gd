@@ -275,9 +275,9 @@ func server_disconnect_peer(pid: int, reason: String = "") -> void:
 	if pid == SERVER_ID: return # can't disconnect the server; use stop_server instead
 	if not pid_in_lobby(pid): return
 	multiplayer.multiplayer_peer.disconnect_peer(pid)
-	var p = find_by_pid(pid)
-	if not p: return
-	p.queue_free()
+	if not _host_players.has(pid): return
+	_host_players.erase(pid)
+	update_players_from_host.rpc(_host_players)
 
 # Finds local ip addresses to tell clients to try to connect to if discovery fails
 func get_ips() -> Array: return NetworkUtils.get_local_ipv4_addresses()
