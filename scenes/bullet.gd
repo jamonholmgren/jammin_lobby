@@ -20,12 +20,8 @@ func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
   
   # Get the other body in the collision
   var other_body: Node3D = state.get_contact_collider_object(0)
-
-  # Knock back the other body if it's a CollisionObject3D
-  if other_body is PhysicsBody3D:
-    other_body.apply_central_impulse(global_transform.basis.z * linear_velocity.length() * 10000.0)
   
-  spawn_explosion.rpc(global_transform.origin)
+  spawn_explosion.rpc(global_transform.origin, other_body)
 
 func cancel_timer() -> void:
   explode_timer.stop()
@@ -33,12 +29,16 @@ func cancel_timer() -> void:
   explode_timer = null
 
 @rpc("reliable", "any_peer", "call_local")
-func spawn_explosion(location: Vector3) -> void:
+func spawn_explosion(location: Vector3, other_body: Node3D) -> void:
   visible = false
   set_physics_process(false)
   cancel_timer()
 
   Game.spawn_at(preload("res://scenes/explosion.tscn"), location)
+
+  # Apply knockback to the other body if it's a RigidBody3D and we are the authority
+  if other_body is RigidBody3D and other_body.is_multiplayer_authority():
+    other_body.apply_central_impulse(global_transform.basis.z * linear_velocity.length() * 10000.0)
 
   var distance := global_transform.origin.distance_to(location)
   var speed_of_sound := 343.0
