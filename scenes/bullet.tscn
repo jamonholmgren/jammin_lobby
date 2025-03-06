@@ -1,0 +1,18 @@
+[gd_scene load_steps=3 format=3 uid="uid://c56oln2sji30i"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_vegj0"]
+emission_enabled = true
+emission = Color(0.470588, 0.721569, 0, 1)
+emission_energy_multiplier = 5.0
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_pgtvf"]
+size = Vector3(0.2, 0.2, 1)
+
+[node name="Bullet" type="RigidBody3D"]
+
+[node name="CSGBox3D" type="CSGBox3D" parent="."]
+size = Vector3(0.2, 0.2, 1)
+material = SubResource("StandardMaterial3D_vegj0")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("BoxShape3D_pgtvf")
