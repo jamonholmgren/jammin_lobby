@@ -12,3 +12,10 @@ func play_audio_3d(stream: AudioStream, location: Vector3) -> void:
   audio_player.global_transform.origin = location
   audio_player.finished.connect(audio_player.queue_free)
   audio_player.play()
+
+# Game.spawn_at(preload("res://scenes/bullet.tscn"), some_origin)
+func spawn_at(scene: PackedScene, location: Vector3) -> Node3D:
+  var instance = scene.instantiate()
+  get_tree().current_scene.add_child(instance)
+  instance.global_transform.origin = location
+  return instance

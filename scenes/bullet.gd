@@ -30,12 +30,6 @@ func spawn_explosion(location: Vector3) -> void:
 
   Game.play_audio_3d(load("res://assets/impact.mp3"), location)
   
-  # TODO: spawn explosion
-  # var explosion = preload("res://scenes/explosion.tscn").instantiate()
-  # explosion.global_transform = location
-  # get_tree().current_scene.add_child(explosion)
-  
-  print("spawn explosion:", location)
+  Game.spawn_at(preload("res://scenes/explosion.tscn"), location)
   queue_free()
-
 

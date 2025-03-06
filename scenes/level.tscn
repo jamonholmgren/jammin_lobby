@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3 uid="uid://d3pjxi6563ipv"]
+[gd_scene load_steps=9 format=3 uid="uid://d3pjxi6563ipv"]
 
 [ext_resource type="Script" uid="uid://dkgm43rno2pp2" path="res://scenes/spawn_point.gd" id="2_a7mro"]
 
@@ -26,8 +26,6 @@ albedo_color = Color(1, 0.537255, 0.313726, 1)
 
 [sub_resource type="SphereShape3D" id="SphereShape3D_f5u8g"]
 radius = 25.0
-
-[sub_resource type="CylinderMesh" id="CylinderMesh_2q6dc"]
 
 [node name="Level" type="Node3D"]
 
@@ -232,6 +230,3 @@ script = ExtResource("2_a7mro")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="SpawnPoints/SpawnPoint8"]
 shape = SubResource("SphereShape3D_f5u8g")
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
-mesh = SubResource("CylinderMesh_2q6dc")

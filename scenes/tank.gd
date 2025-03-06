@@ -59,8 +59,6 @@ func fire() -> void:
 func spawn_bullet(start_transform: Transform3D, start_velo: Vector3) -> void:
 	Game.play_audio_3d(load("res://assets/tank-shot.mp3"), start_transform.origin)
 
-	var bullet = preload("res://scenes/bullet.tscn").instantiate()
+	var bullet = Game.spawn_at(preload("res://scenes/bullet.tscn"), start_transform.origin)
 	bullet.global_transform = start_transform
-	bullet.set_multiplayer_authority(Lobby.sender_id())
 	bullet.linear_velocity = start_velo
-	get_tree().current_scene.add_child(bullet)

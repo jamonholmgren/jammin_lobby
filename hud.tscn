@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3 uid="uid://conwv2xnk05sa"]
+[gd_scene load_steps=3 format=3 uid="uid://conwv2xnk05sa"]
 
 [ext_resource type="Texture2D" uid="uid://c4ficojtcsj62" path="res://assets/cursorcirclewhite.png" id="1_37p78"]
+[ext_resource type="Script" uid="uid://blxfmsm5b2bcy" path="res://hud.gd" id="1_64ctp"]
 
 [node name="HUD" type="Control"]
 layout_mode = 3
@@ -10,6 +11,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
+script = ExtResource("1_64ctp")
 
 [node name="CenterContainer" type="CenterContainer" parent="."]
 layout_mode = 1
@@ -26,11 +28,13 @@ layout_mode = 2
 [node name="Crosshair" type="Sprite2D" parent="CenterContainer/BoxContainer"]
 texture = ExtResource("1_37p78")
 
-[node name="DebugLabel" type="Label" parent="."]
+[node name="FPS" type="Label" parent="."]
 unique_name_in_owner = true
-layout_mode = 2
-offset_left = 93.0
-offset_top = 80.0
-offset_right = 210.0
-offset_bottom = 103.0
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -117.0
+offset_bottom = 23.0
+grow_horizontal = 0
 text = "Target Position"
