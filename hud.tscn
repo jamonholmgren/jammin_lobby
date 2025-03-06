@@ -2,7 +2,8 @@
 
 [ext_resource type="Texture2D" uid="uid://c4ficojtcsj62" path="res://assets/cursorcirclewhite.png" id="1_37p78"]
 
-[node name="HUD" type="CenterContainer"]
+[node name="HUD" type="Control"]
+layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -10,8 +11,26 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
-[node name="BoxContainer" type="BoxContainer" parent="."]
+[node name="CenterContainer" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="BoxContainer" type="BoxContainer" parent="CenterContainer"]
+custom_minimum_size = Vector2(20, 20)
 layout_mode = 2
 
-[node name="Crosshair" type="Sprite2D" parent="BoxContainer"]
+[node name="Crosshair" type="Sprite2D" parent="CenterContainer/BoxContainer"]
 texture = ExtResource("1_37p78")
+
+[node name="DebugLabel" type="Label" parent="."]
+unique_name_in_owner = true
+layout_mode = 2
+offset_left = 93.0
+offset_top = 80.0
+offset_right = 210.0
+offset_bottom = 103.0
+text = "Target Position"

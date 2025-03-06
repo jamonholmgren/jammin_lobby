@@ -37,12 +37,12 @@ func _on_viewport_resize() -> void:
 	# If the size has changed, ignore since we have another event coming
 	if new_viewport_size != get_viewport().size: return
 	
-	_last_size = new_viewport_size
 	scale_ui_to_size()
 
 # Calculate and apply the UI scale
 func scale_ui_to_size() -> void:
 	var viewport = get_viewport()
+	_last_size = viewport.size
 	var width = viewport.size.x
 	var height = viewport.size.y
 	
@@ -51,10 +51,13 @@ func scale_ui_to_size() -> void:
 	var scale_y = height / _base_resolution.y
 	
 	# Use the smaller scale to ensure everything fits
-	var scale = min(scale_x, scale_y)
+	var new_scale = min(scale_x, scale_y)
 	
 	# Clamp to ensure we stay within reasonable bounds
-	scale = clampf(scale, _min_ui_scale, _max_ui_scale)
+	new_scale = clampf(new_scale, _min_ui_scale, _max_ui_scale)
 	
 	# Apply the calculated scale
-	viewport.content_scale_factor = scale
+	viewport.content_scale_factor = new_scale
+
+func scale() -> float:
+	return get_viewport().content_scale_factor

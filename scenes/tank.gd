@@ -9,29 +9,43 @@ extends VehicleBody3D
 @onready var r2: Node3D = %RotationPoint2 # For camera left/right
 @onready var bullet_spawn: Node3D = %BulletSpawn # Where the bullet comes out
 @export var bullet_speed: float = 100.0
+@export var target_position: Vector3 = Vector3.ZERO
 
 const MAX_STEER = 0.9
 const ENGINE_POWER = 4000
 const ROTATION_SPEED = 3.0  # Adjust for smoother or snappier rotation
 
 func _physics_process(delta: float) -> void:
-	turret.rotation.y = lerp_angle(turret.rotation.y, r1.rotation.y, ROTATION_SPEED * delta)
-	
+	rotate_toward_target(delta)
+
 	if Lobby.id() != get_multiplayer_authority(): return
 	steering = move_toward(steering, Input.get_axis("right", "left") * MAX_STEER, delta * 10)
 	engine_force = Input.get_axis("back", "forward") * ENGINE_POWER
 	
-	if tank_camera.get_camera_collision():
-		var target_position = tank_camera.get_camera_collision()
-		var direction = (target_position - barrel_rotation.global_position).normalized()
-		var target_angle_x = atan2(-direction.y, direction.z)  # Extract X-axis rotation
-		# Lerp the rotation angle towards the target angle
-		barrel_rotation.rotation.x = lerp_angle(barrel_rotation.rotation.x, target_angle_x, 0.05)
-		# Clamp to prevent over-rotation
-		barrel_rotation.rotation.x = clamp(barrel_rotation.rotation.x, -0.3, 0.2)
-	else:
-		barrel_rotation.rotation.x = barrel_rotation.rotation.x
+	if Engine.get_physics_frames() % 10 == 0: update_target_position()
 
+
+func update_target_position() -> void:
+	target_position = tank_camera.get_camera_collision()
+
+func rotate_toward_target(delta: float) -> void:
+	if target_position == Vector3.ZERO: return
+
+	# Smoothly rotate turret horizontally (yaw)
+	turret.rotation.y = lerp_angle(turret.rotation.y, r1.rotation.y, ROTATION_SPEED * delta)
+	
+	# Calculate direction to target from barrel position
+	var barrel_to_target = target_position - barrel_rotation.global_position
+	
+	# Get the local direction in the barrel's space
+	var local_direction = barrel_rotation.global_transform.basis.inverse() * barrel_to_target
+	
+	# Calculate target rotation angles
+	var target_pitch = atan2(-local_direction.y, sqrt(local_direction.x * local_direction.x + local_direction.z * local_direction.z))
+	
+	# Smoothly interpolate barrel pitch rotation
+	barrel_rotation.rotation.x = lerp_angle(barrel_rotation.rotation.x, target_pitch, ROTATION_SPEED * delta)
+	
 func _input(event: InputEvent) -> void:
 	# Check if the menu is visible -- if so, don't accept input
 	if Main.menu.visible: return

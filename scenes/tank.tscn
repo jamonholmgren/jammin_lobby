@@ -1,7 +1,6 @@
-[gd_scene load_steps=9 format=3 uid="uid://damsrqwlonlca"]
+[gd_scene load_steps=8 format=3 uid="uid://damsrqwlonlca"]
 
 [ext_resource type="Script" uid="uid://cju4lvl11s0vj" path="res://scenes/tank.gd" id="1_4piap"]
-[ext_resource type="Texture2D" uid="uid://c4ficojtcsj62" path="res://assets/cursorcirclewhite.png" id="2_0n77f"]
 [ext_resource type="PackedScene" uid="uid://7fcqwu6k3e4x" path="res://assets/tank.glb" id="2_ibak5"]
 [ext_resource type="Script" uid="uid://d04mbnk6srgin" path="res://scenes/tank_camera.gd" id="3_ikjma"]
 
@@ -54,15 +53,14 @@ properties/11/replication_mode = 1
 properties/12/path = NodePath("tank/Main/RotationPoint/RotationPoint2:rotation")
 properties/12/spawn = true
 properties/12/replication_mode = 1
+properties/13/path = NodePath(".:target_position")
+properties/13/spawn = true
+properties/13/replication_mode = 1
 
 [node name="Tank" type="VehicleBody3D"]
 collision_layer = 0
 mass = 1000.0
 script = ExtResource("1_4piap")
-
-[node name="Crosshair" type="Sprite2D" parent="."]
-unique_name_in_owner = true
-texture = ExtResource("2_0n77f")
 
 [node name="tank" parent="." instance=ExtResource("2_ibak5")]
 
@@ -76,9 +74,9 @@ radius = 0.1
 height = 5.0
 material = SubResource("StandardMaterial3D_r72yb")
 
-[node name="BulletSpawn" type="Node3D" parent="tank/Turret/BarrelRotation/Barrel"]
+[node name="BulletSpawn" type="Node3D" parent="tank/Turret/BarrelRotation"]
 unique_name_in_owner = true
-transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 2.47999, -0.0154204)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.0154204, 4.03828)
 
 [node name="RotationPoint" type="Node3D" parent="tank/Main" index="0"]
 unique_name_in_owner = true
@@ -93,6 +91,7 @@ script = ExtResource("3_ikjma")
 
 [node name="CameraIndicator" type="MeshInstance3D" parent="tank/Main/RotationPoint/RotationPoint2/TankCamera"]
 transform = Transform3D(1, -8.74228e-08, 8.74228e-08, 8.74228e-08, -4.37114e-08, -1, 8.74228e-08, 1, -4.37114e-08, 0, 0, 0)
+visible = false
 mesh = SubResource("PrismMesh_xn72j")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]

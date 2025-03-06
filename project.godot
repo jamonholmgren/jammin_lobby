@@ -68,6 +68,7 @@ fire={
 
 3d_physics/layer_1="Obstacles"
 3d_physics/layer_2="Tanks"
+3d_physics/layer_3="Bullets"
 
 [physics]
 
