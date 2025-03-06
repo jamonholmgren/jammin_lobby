@@ -14,10 +14,17 @@ func _ready() -> void:
 
 func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
   if state.get_contact_count() == 0: return
+
+  # only the multiplayer authority can explode
+  if not is_multiplayer_authority(): return
   
-  # if we're the authority, tell everyone we exploded
-  if is_multiplayer_authority():
-    spawn_explosion.rpc(global_transform.origin)
+  # Get the other body in the collision
+  var other_body: Node3D = state.get_contact_collider_object(0)
+
+  # Knock back the other body
+  other_body.apply_central_impulse(global_transform.basis.z * linear_velocity.length() * 100.0)
+  
+  spawn_explosion.rpc(global_transform.origin)
 
 func cancel_timer() -> void:
   explode_timer.stop()
