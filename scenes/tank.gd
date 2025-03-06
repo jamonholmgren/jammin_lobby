@@ -21,29 +21,19 @@ func _physics_process(delta: float) -> void:
 	if Lobby.id() != get_multiplayer_authority(): return
 	steering = move_toward(steering, Input.get_axis("right", "left") * MAX_STEER, delta * 10)
 	engine_force = Input.get_axis("back", "forward") * ENGINE_POWER
+	%EngineAudio.pitch_scale = (linear_velocity.length() / 100.0) + 0.5
 	
 	if Engine.get_physics_frames() % 10 == 0: update_target_position()
-
 
 func update_target_position() -> void:
 	target_position = tank_camera.get_camera_collision()
 
 func rotate_toward_target(delta: float) -> void:
 	if target_position == Vector3.ZERO: return
-
-	# Smoothly rotate turret horizontally (yaw)
 	turret.rotation.y = lerp_angle(turret.rotation.y, r1.rotation.y, ROTATION_SPEED * delta)
-	
-	# Calculate direction to target from barrel position
 	var barrel_to_target = target_position - barrel_rotation.global_position
-	
-	# Get the local direction in the barrel's space
 	var local_direction = barrel_rotation.global_transform.basis.inverse() * barrel_to_target
-	
-	# Calculate target rotation angles
 	var target_pitch = atan2(-local_direction.y, sqrt(local_direction.x * local_direction.x + local_direction.z * local_direction.z))
-	
-	# Smoothly interpolate barrel pitch rotation
 	barrel_rotation.rotation.x = lerp_angle(barrel_rotation.rotation.x, target_pitch, ROTATION_SPEED * delta)
 	
 func _input(event: InputEvent) -> void:
@@ -63,12 +53,14 @@ func _input(event: InputEvent) -> void:
 func fire() -> void:
 	# Only the host for this tank can fire
 	if Lobby.id() != get_multiplayer_authority(): return
-	spawn_bullet.rpc()
+	spawn_bullet.rpc(bullet_spawn.global_transform, bullet_spawn.global_transform.basis.z * bullet_speed)
 
 @rpc("reliable", "any_peer", "call_local")
-func spawn_bullet() -> void:
+func spawn_bullet(start_transform: Transform3D, start_velo: Vector3) -> void:
+	Game.play_audio_3d(load("res://assets/tank-shot.mp3"), start_transform.origin)
+
 	var bullet = preload("res://scenes/bullet.tscn").instantiate()
-	bullet.global_transform = bullet_spawn.global_transform
+	bullet.global_transform = start_transform
 	bullet.set_multiplayer_authority(Lobby.sender_id())
-	bullet.linear_velocity = bullet_spawn.global_transform.basis.z * bullet_speed
+	bullet.linear_velocity = start_velo
 	get_tree().current_scene.add_child(bullet)
