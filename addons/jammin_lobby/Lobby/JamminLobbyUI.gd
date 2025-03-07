@@ -1,5 +1,11 @@
 class_name JamminLobbyUI extends JamminLobby
 
+# This is a basic Lobby UI for your game. Drop it into your main scene
+# and it'll automatically do everything except the game itself.
+#
+# To connect to the "start game" event, do this:
+# Lobby.on_game_event.connect(_on_start_game_pressed)
+
 func _ready() -> void:
 	super()
 	%CreateLobbyButton.pressed.connect(_on_create_lobby_pressed)
@@ -8,21 +14,23 @@ func _ready() -> void:
 	%RefreshButton.pressed.connect(_on_refresh_pressed)
 	%StartGameButton.pressed.connect(_on_start_game_pressed)
 
-	Lobby.hosting_started.connect(_on_hosting_started)
-	Lobby.hosting_stopped.connect(_on_hosting_stopped)
-	Lobby.me_connecting_to_lobby.connect(_on_me_connecting_to_lobby)
+	Lobby.me_restored.connect(update_lobby_ui)
+	Lobby.me_connecting_to_lobby.connect(update_lobby_ui)
 	Lobby.me_joined_lobby.connect(_on_me_joined_lobby)
 	Lobby.me_left_lobby.connect(_on_me_left_lobby)
-	Lobby.me_updated.connect(_on_me_updated)
-	Lobby.player_connecting_to_lobby.connect(_on_player_connecting_to_lobby)
-	Lobby.player_joined_lobby.connect(_on_player_joined_lobby)
-	Lobby.player_left_lobby.connect(_on_player_left_lobby)
-	Lobby.player_updated.connect(_on_player_updated)
-	Lobby.discovery_server_started.connect(_on_discovery_server_started)
-	Lobby.discovery_server_failed.connect(_on_discovery_server_failed)
-	Lobby.discovery_server_stopped.connect(_on_discovery_server_stopped)
+	Lobby.me_updated.connect(update_lobby_ui)
+	Lobby.hosting_started.connect(update_lobby_ui)
+	Lobby.hosting_failed.connect(update_lobby_ui)
+	Lobby.hosting_stopped.connect(update_lobby_ui)
+	Lobby.player_connecting_to_lobby.connect(update_lobby_ui)
+	Lobby.player_joined_lobby.connect(update_lobby_ui)
+	Lobby.player_left_lobby.connect(update_lobby_ui)
+	Lobby.player_updated.connect(update_lobby_ui)
+	Lobby.discovery_server_started.connect(update_lobby_ui)
+	Lobby.discovery_server_failed.connect(update_lobby_ui)
+	Lobby.discovery_server_stopped.connect(update_lobby_ui)
 	Lobby.lobbies_refreshed.connect(_on_lobbies_refreshed)
-	Lobby.ping_updated.connect(_on_ping_updated)
+	Lobby.ping_updated.connect(update_lobby_ui)
 
 	%JoiningOverlay.hide()
 
@@ -36,9 +44,6 @@ func _ready() -> void:
 
 func _on_create_lobby_pressed() -> void:
 	Lobby.start_hosting()
-
-func _on_hosting_started() -> void:
-	update_lobby_ui()
 
 func _on_leave_lobby_pressed() -> void:
 	Lobby.leave()
@@ -64,16 +69,6 @@ func _on_lobbies_refreshed(lobbies: Dictionary, error: String = "") -> void:
 	
 	update_lobby_ui()
 
-func _on_ping_updated(ping: int) -> void:
-	update_lobby_ui()
-
-func _on_hosting_stopped(_msg: String = "") -> void:
-	update_lobby_ui()
-
-func _on_me_connecting_to_lobby() -> void:
-	Lobby.lm("me_connecting_to_lobby")
-	update_lobby_ui()
-
 func _on_me_joined_lobby(player: Dictionary) -> void:
 	Lobby.lm("me_joined_lobby: ", player)
 	%JoiningOverlay.hide()
@@ -84,39 +79,7 @@ func _on_me_left_lobby(reason: String) -> void:
 	%JoiningOverlay.hide()
 	update_lobby_ui()
 
-func _on_me_updated(player: Dictionary) -> void:
-	Lobby.lm("me_updated: ", player)
-	update_lobby_ui()
-
-func _on_player_connecting_to_lobby(pid: int) -> void:
-	Lobby.lm("player_connecting_to_lobby: ", pid)
-	update_lobby_ui()
-
-func _on_player_joined_lobby(player: Dictionary) -> void:
-	Lobby.lm("player_joined_lobby: ", player)
-	update_lobby_ui()
-
-func _on_player_left_lobby(player: Dictionary) -> void:
-	Lobby.lm("player_left_lobby: ", player)
-	update_lobby_ui()
-
-func _on_player_updated(player: Dictionary) -> void:
-	Lobby.lm("player_updated: ", player)
-	update_lobby_ui()
-
-func _on_discovery_server_started() -> void:
-	Lobby.lm("discovery_server_started")
-	update_lobby_ui()
-
-func _on_discovery_server_failed() -> void:
-	Lobby.lm("discovery_server_failed")
-	update_lobby_ui()
-
-func _on_discovery_server_stopped() -> void:
-	Lobby.lm("discovery_server_stopped")
-	update_lobby_ui()
-
-func update_lobby_ui() -> void:
+func update_lobby_ui(_a = null, _b = null, _c = null, _d = null) -> void:
 	var lobbies = Lobby.found_lobbies.values()
 	JamminList.update_grid(%LobbiesGrid, lobbies, true, update_lobby_row)
 	
