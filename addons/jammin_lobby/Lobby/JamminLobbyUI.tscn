@@ -1,7 +1,10 @@
-[gd_scene load_steps=3 format=3 uid="uid://bdv22q10r4trl"]
+[gd_scene load_steps=4 format=3 uid="uid://bdv22q10r4trl"]
 
 [ext_resource type="Script" uid="uid://bnyqc6s4yghve" path="res://addons/jammin_lobby/Lobby/JamminLobbyUI.gd" id="1_0kqi4"]
 [ext_resource type="Script" uid="uid://jrc680fqrmi5" path="res://addons/jammin_lobby/Lobby/JamminControl.gd" id="2_02mob"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dd6xl"]
+bg_color = Color(0.0980392, 0.12549, 0.152941, 0.909804)
 
 [node name="JamminLobbyUI" type="Control"]
 layout_mode = 3
@@ -28,6 +31,7 @@ theme_override_constants/margin_bottom = 100
 
 [node name="PanelContainer" type="PanelContainer" parent="MarginContainer"]
 layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_dd6xl")
 
 [node name="MarginContainer" type="MarginContainer" parent="MarginContainer/PanelContainer"]
 layout_mode = 2

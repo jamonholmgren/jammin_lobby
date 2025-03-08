@@ -72,9 +72,11 @@ func fire() -> void:
 
 @rpc("reliable", "any_peer", "call_local")
 func spawn_bullet(start_transform: Transform3D, start_velo: Vector3, bullet_name: String) -> void:
-	Game.play_audio_3d(load("res://assets/tank-shot.mp3"), start_transform.origin)
-
 	var bullet = Game.spawn_at(preload("res://scenes/bullet.tscn"), start_transform.origin)
 	bullet.name = bullet_name
 	bullet.global_transform = start_transform
 	bullet.linear_velocity = start_velo
+
+	Game.play_audio_3d(load("res://assets/tank-shot.mp3"), start_transform.origin)
+
+

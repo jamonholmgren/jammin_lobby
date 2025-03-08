@@ -1,6 +1,9 @@
-[gd_scene load_steps=9 format=3 uid="uid://d3pjxi6563ipv"]
+[gd_scene load_steps=18 format=3 uid="uid://d3pjxi6563ipv"]
 
+[ext_resource type="Shader" uid="uid://sdxnw5vvlhl4" path="res://scenes/dome.gdshader" id="1_w8frs"]
 [ext_resource type="Script" uid="uid://dkgm43rno2pp2" path="res://scenes/spawn_point.gd" id="2_a7mro"]
+[ext_resource type="PackedScene" uid="uid://dokfft6qx37qt" path="res://scenes/smoke.tscn" id="2_w7c3h"]
+[ext_resource type="Script" uid="uid://ck0y2wef13yir" path="res://pathcamera.gd" id="4_mx8sn"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_jqy14"]
 sky_horizon_color = Color(0.64625, 0.65575, 0.67075, 1)
@@ -25,18 +28,55 @@ fog_depth_begin = 150.0
 fog_depth_end = 250.0
 volumetric_fog_enabled = true
 volumetric_fog_density = 0.001
+volumetric_fog_length = 200.0
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_w7c3h"]
+noise_type = 4
+frequency = 1.0
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_w8frs"]
+width = 2048
+height = 2048
+noise = SubResource("FastNoiseLite_w7c3h")
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_0tuir"]
-albedo_color = Color(0.237539, 0.237539, 0.237539, 1)
+albedo_color = Color(0.19474, 0.189571, 0.206636, 1)
+albedo_texture = SubResource("NoiseTexture2D_w8frs")
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_mx8sn"]
+render_priority = 0
+shader = ExtResource("1_w8frs")
+shader_parameter/swirl_color = Color(0.3, 0.7, 1, 0.3)
+shader_parameter/swirl_speed = 0.1
+shader_parameter/swirl_scale = 1.0
+
+[sub_resource type="SphereMesh" id="SphereMesh_ppgk2"]
+material = SubResource("ShaderMaterial_mx8sn")
+radius = 150.0
+height = 300.0
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_w7c3h"]
+width = 1024
+height = 64
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_0ys8r"]
 albedo_color = Color(0.312466, 0.312466, 0.312466, 1)
+albedo_texture = SubResource("NoiseTexture2D_w7c3h")
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_52x48"]
-albedo_color = Color(1, 0.537255, 0.313726, 1)
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_w8frs"]
+albedo_color = Color(0.684604, 0.676136, 0.704487, 1)
+albedo_texture = SubResource("NoiseTexture2D_w8frs")
 
 [sub_resource type="SphereShape3D" id="SphereShape3D_f5u8g"]
 radius = 25.0
+
+[sub_resource type="Curve3D" id="Curve3D_w8frs"]
+closed = true
+_data = {
+"points": PackedVector3Array(-22.4628, 5.27567, -20.4761, 22.4628, -5.27567, 20.4761, -28.1874, -62.8971, 230.784, -22, -5, 20, 22, 5, -20, 228.202, -63.7412, 233.881, 22, -5, 20, -22, 5, -20, 235.639, 6.41067, -23.5222, 22, -5, -20, -22, 5, 20, -37.5049, 6.71944, -24.6551),
+"tilts": PackedFloat32Array(0, 0, 0, 0)
+}
+point_count = 4
 
 [node name="Level" type="Node3D"]
 
@@ -83,28 +123,32 @@ shadow_enabled = true
 [node name="Floor" type="CSGBox3D" parent="Obstacles"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
 use_collision = true
-size = Vector3(200, 1, 200)
+size = Vector3(350, 1, 350)
 material = SubResource("StandardMaterial3D_0tuir")
 
-[node name="Wall" type="CSGBox3D" parent="Obstacles"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5.5, -99)
+[node name="Dome" type="MeshInstance3D" parent="Obstacles"]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 0, -33.8954, 0)
+mesh = SubResource("SphereMesh_ppgk2")
+
+[node name="EdgeWall" type="CSGBox3D" parent="Obstacles"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.046, 5.5, -99.411)
 use_collision = true
 size = Vector3(200, 12, 2)
 material = SubResource("StandardMaterial3D_0ys8r")
 
-[node name="Wall2" type="CSGBox3D" parent="Obstacles"]
+[node name="EdgeWall2" type="CSGBox3D" parent="Obstacles"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5.5, 99)
 use_collision = true
 size = Vector3(200, 12, 2)
 material = SubResource("StandardMaterial3D_0ys8r")
 
-[node name="Wall3" type="CSGBox3D" parent="Obstacles"]
+[node name="EdgeWall3" type="CSGBox3D" parent="Obstacles"]
 transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, 99, 5.5, 0)
 use_collision = true
 size = Vector3(200, 12, 2)
 material = SubResource("StandardMaterial3D_0ys8r")
 
-[node name="Wall4" type="CSGBox3D" parent="Obstacles"]
+[node name="EdgeWall4" type="CSGBox3D" parent="Obstacles"]
 transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, -99, 5.5, 0)
 use_collision = true
 size = Vector3(200, 12, 2)
@@ -114,85 +158,85 @@ material = SubResource("StandardMaterial3D_0ys8r")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, 72)
 use_collision = true
 size = Vector3(6, 6, 6)
-material = SubResource("StandardMaterial3D_52x48")
+material = SubResource("StandardMaterial3D_w8frs")
 
 [node name="Box11" type="CSGBox3D" parent="Obstacles"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, 46)
 use_collision = true
 size = Vector3(6, 6, 6)
-material = SubResource("StandardMaterial3D_52x48")
+material = SubResource("StandardMaterial3D_w8frs")
 
 [node name="Box12" type="CSGBox3D" parent="Obstacles"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -36, 3, 20)
 use_collision = true
 size = Vector3(6, 6, 6)
-material = SubResource("StandardMaterial3D_52x48")
+material = SubResource("StandardMaterial3D_w8frs")
 
 [node name="Box2" type="CSGBox3D" parent="Obstacles"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 54, 3, 20)
 use_collision = true
 size = Vector3(12, 6, 6)
-material = SubResource("StandardMaterial3D_52x48")
+material = SubResource("StandardMaterial3D_w8frs")
 
 [node name="Box14" type="CSGBox3D" parent="Obstacles"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 3, -16)
 use_collision = true
 size = Vector3(12, 6, 6)
-material = SubResource("StandardMaterial3D_52x48")
+material = SubResource("StandardMaterial3D_w8frs")
 
 [node name="Box3" type="CSGBox3D" parent="Obstacles"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -27, 3, -63)
 use_collision = true
 size = Vector3(6, 6, 24)
-material = SubResource("StandardMaterial3D_52x48")
+material = SubResource("StandardMaterial3D_w8frs")
 
 [node name="Box4" type="CSGBox3D" parent="Obstacles"]
 transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, 5, 12, -54)
 use_collision = true
 size = Vector3(6, 24, 24)
-material = SubResource("StandardMaterial3D_52x48")
+material = SubResource("StandardMaterial3D_w8frs")
 
 [node name="Box5" type="CSGBox3D" parent="Obstacles"]
 transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, 52, 3, -22)
 use_collision = true
 size = Vector3(6, 6, 24)
-material = SubResource("StandardMaterial3D_52x48")
+material = SubResource("StandardMaterial3D_w8frs")
 
 [node name="Box13" type="CSGBox3D" parent="Obstacles"]
 transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, -24, 3, 48)
 use_collision = true
 size = Vector3(6, 6, 24)
-material = SubResource("StandardMaterial3D_52x48")
+material = SubResource("StandardMaterial3D_w8frs")
 
 [node name="Box6" type="CSGBox3D" parent="Obstacles"]
 transform = Transform3D(-1, 0, 8.74228e-08, 0, 1, 0, -8.74228e-08, 0, -1, -59, 3, -13)
 use_collision = true
 size = Vector3(6, 6, 24)
-material = SubResource("StandardMaterial3D_52x48")
+material = SubResource("StandardMaterial3D_w8frs")
 
 [node name="Box7" type="CSGBox3D" parent="Obstacles"]
 transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, -75, 3, 49)
 use_collision = true
 size = Vector3(6, 6, 48)
-material = SubResource("StandardMaterial3D_52x48")
+material = SubResource("StandardMaterial3D_w8frs")
 
 [node name="Box8" type="CSGBox3D" parent="Obstacles"]
 transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, 76, 3, -48)
 use_collision = true
 size = Vector3(6, 6, 48)
-material = SubResource("StandardMaterial3D_52x48")
+material = SubResource("StandardMaterial3D_w8frs")
 
 [node name="Box9" type="CSGBox3D" parent="Obstacles"]
 transform = Transform3D(-1, 0, 8.74228e-08, 0, 1, 0, -8.74228e-08, 0, -1, 46, 3, 75)
 use_collision = true
 size = Vector3(6, 6, 48)
-material = SubResource("StandardMaterial3D_52x48")
+material = SubResource("StandardMaterial3D_w8frs")
 
 [node name="Box10" type="CSGBox3D" parent="Obstacles"]
 transform = Transform3D(-1, 0, 8.74228e-08, 0, 1, 0, -8.74228e-08, 0, -1, -40, 3, -74)
 use_collision = true
 size = Vector3(6, 6, 48)
-material = SubResource("StandardMaterial3D_52x48")
+material = SubResource("StandardMaterial3D_w8frs")
 
 [node name="Tanks" type="Node3D" parent="."]
 unique_name_in_owner = true
@@ -272,3 +316,19 @@ script = ExtResource("2_a7mro")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="SpawnPoints/SpawnPoint8"]
 shape = SubResource("SphereShape3D_f5u8g")
+
+[node name="Smoke" parent="." instance=ExtResource("2_w7c3h")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -59.0762, 1.73977, -35.2799)
+
+[node name="Path3D" type="Path3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.96481, 0.262947, 0, -0.262947, 0.96481, -101.234, 31.4105, -108.787)
+curve = SubResource("Curve3D_w8frs")
+
+[node name="PathFollow3D" type="PathFollow3D" parent="Path3D"]
+transform = Transform3D(-0.67367, 0.126385, -0.728145, 0, 0.985267, 0.171014, 0.739033, 0.115207, -0.663745, -28.1874, -62.8971, 230.784)
+
+[node name="Camera3D" type="Camera3D" parent="Path3D/PathFollow3D" node_paths=PackedStringArray("target", "carrier")]
+current = true
+script = ExtResource("4_mx8sn")
+target = NodePath("../../..")
+carrier = NodePath("..")

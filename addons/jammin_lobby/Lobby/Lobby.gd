@@ -235,6 +235,7 @@ func update_me(changes: Dictionary):
 
 func sync_me_with_host():
 	if not online(): return
+	lm("sync_me_with_host", online(), multiplayer.get_peers())
 	update_player_data.rpc_id(SERVER_ID, me)
 
 @rpc("any_peer", "reliable", "call_local")

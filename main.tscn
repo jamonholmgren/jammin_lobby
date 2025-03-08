@@ -1,9 +1,10 @@
-[gd_scene load_steps=5 format=3 uid="uid://bdvfqftdq2upn"]
+[gd_scene load_steps=6 format=3 uid="uid://bdvfqftdq2upn"]
 
 [ext_resource type="PackedScene" uid="uid://d3pjxi6563ipv" path="res://scenes/level.tscn" id="1_6cjoc"]
 [ext_resource type="Script" uid="uid://csa6ocghl761w" path="res://main.gd" id="1_x3fsg"]
 [ext_resource type="PackedScene" uid="uid://bdv22q10r4trl" path="res://addons/jammin_lobby/Lobby/JamminLobbyUI.tscn" id="2_3y7pk"]
 [ext_resource type="PackedScene" uid="uid://conwv2xnk05sa" path="res://hud.tscn" id="4_1bvp3"]
+[ext_resource type="PackedScene" uid="uid://byfifpiilr0yf" path="res://scenes/explosion.tscn" id="5_lquwl"]
 
 [node name="Main" type="Node3D"]
 script = ExtResource("1_x3fsg")
@@ -14,3 +15,6 @@ script = ExtResource("1_x3fsg")
 
 [node name="HUD" parent="." instance=ExtResource("4_1bvp3")]
 visible = false
+
+[node name="Explosion" parent="." instance=ExtResource("5_lquwl")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 17.1596, 15.3186, -6.7859)

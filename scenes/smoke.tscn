@@ -1,0 +1,26 @@
+[gd_scene load_steps=5 format=3 uid="uid://dokfft6qx37qt"]
+
+[ext_resource type="Shader" uid="uid://vf4swa36fex4" path="res://scenes/smoke.gdshader" id="1_acmqr"]
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_rx0m8"]
+
+[sub_resource type="NoiseTexture3D" id="NoiseTexture3D_y4cvb"]
+width = 128
+height = 128
+depth = 128
+noise = SubResource("FastNoiseLite_rx0m8")
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_rx0m8"]
+shader = ExtResource("1_acmqr")
+shader_parameter/density = 5.5526
+shader_parameter/albedo = Color(1, 1, 1, 1)
+shader_parameter/emission = Color(0, 0, 0, 1)
+shader_parameter/height_falloff = 0.05
+shader_parameter/edge_fade = 0.1
+shader_parameter/density_texture = SubResource("NoiseTexture3D_y4cvb")
+
+[node name="Smoke" type="Node3D"]
+
+[node name="FogVolume" type="FogVolume" parent="."]
+shape = 0
+material = SubResource("ShaderMaterial_rx0m8")
