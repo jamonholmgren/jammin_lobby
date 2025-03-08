@@ -105,3 +105,16 @@ There are a variety of signals and other features included. Read the [plugin doc
 Download or clone this repo to your local machine and open the `project.godot` file in Godot 4.x.
 
 Run the project as you normally would, and play a multiplayer tank game with your friends!
+
+## Credits
+
+- [Jamon Holmgren - Jammin Games](https://github.com/jamonholmgren)
+- [Denton Holmgren - Deadslap](https://github.com/dentonholmgren)
+
+## License
+
+The JamminLobby plugin (in `addons/jammin_lobby`) is licensed under the MIT license.
+
+The Attack 3D tank demo code (such as GDScript and GDShader code, scene and material files) are also licensed under the MIT license.
+
+The Attack 3D tank demo assets (such as models, textures, audio, icons, and anything else in the `assets` folder) are copyright 2025 Jamon Holmgren and Denton Holmgren. They may be freely used for personal enjoyment, but may not be used for commercial purposes without permission.

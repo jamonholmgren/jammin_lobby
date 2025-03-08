@@ -1,13 +1,19 @@
-[gd_scene load_steps=6 format=3 uid="uid://bdvfqftdq2upn"]
+[gd_scene load_steps=7 format=3 uid="uid://bdvfqftdq2upn"]
 
 [ext_resource type="PackedScene" uid="uid://d3pjxi6563ipv" path="res://scenes/level.tscn" id="1_6cjoc"]
 [ext_resource type="Script" uid="uid://csa6ocghl761w" path="res://main.gd" id="1_x3fsg"]
 [ext_resource type="PackedScene" uid="uid://bdv22q10r4trl" path="res://addons/jammin_lobby/Lobby/JamminLobbyUI.tscn" id="2_3y7pk"]
+[ext_resource type="AudioStream" uid="uid://cw3apjm7ejoi" path="res://assets/backgroundSong.ogg" id="2_7mycd"]
 [ext_resource type="PackedScene" uid="uid://conwv2xnk05sa" path="res://hud.tscn" id="4_1bvp3"]
 [ext_resource type="PackedScene" uid="uid://byfifpiilr0yf" path="res://scenes/explosion.tscn" id="5_lquwl"]
 
 [node name="Main" type="Node3D"]
 script = ExtResource("1_x3fsg")
+
+[node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("2_7mycd")
+autoplay = true
+parameters/looping = true
 
 [node name="Level" parent="." instance=ExtResource("1_6cjoc")]
 
