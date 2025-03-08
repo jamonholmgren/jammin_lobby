@@ -21,7 +21,7 @@ func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
   # Get the other body in the collision
   var other_body: Node3D = state.get_contact_collider_object(0)
   
-  spawn_explosion.rpc(global_transform.origin, other_body)
+  spawn_explosion.rpc(global_transform.origin, other_body.get_path())
 
 func cancel_timer() -> void:
   if not explode_timer: return
@@ -30,7 +30,8 @@ func cancel_timer() -> void:
   explode_timer = null
 
 @rpc("reliable", "any_peer", "call_local")
-func spawn_explosion(location: Vector3, other_body: Node3D) -> void:
+func spawn_explosion(location: Vector3, other_body_path: NodePath) -> void:
+  var other_body: Node3D = get_node(other_body_path)
   visible = false
   set_physics_process(false)
   cancel_timer()
