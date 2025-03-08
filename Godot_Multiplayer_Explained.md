@@ -183,8 +183,8 @@ multiplayer.multiplayer_peer = peer
 > JamminLobby handles this for you and provides signals.
 >
 > ```gdscript
-> Lobby.me_joined_lobby.connect(func(player): print("Joined lobby"))
-> Lobby.me_left_lobby.connect(func(reason): print("Failed to join lobby: ", reason))
+> Lobby.i_joined_lobby.connect(func(player): print("Joined lobby"))
+> Lobby.i_left_lobby.connect(func(reason): print("Failed to join lobby: ", reason))
 > Lobby.join({ "ip": "127.0.0.1", "port": 1234 })
 > ```
 

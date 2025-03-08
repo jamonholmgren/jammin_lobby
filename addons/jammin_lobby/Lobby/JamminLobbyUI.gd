@@ -15,10 +15,10 @@ func _ready() -> void:
 	%StartGameButton.pressed.connect(_on_start_game_pressed)
 
 	Lobby.me_restored.connect(update_lobby_ui)
-	Lobby.me_connecting_to_lobby.connect(update_lobby_ui)
-	Lobby.me_joined_lobby.connect(_on_me_joined_lobby)
-	Lobby.me_left_lobby.connect(_on_me_left_lobby)
-	Lobby.me_updated.connect(update_lobby_ui)
+	Lobby.i_connecting_to_lobby.connect(update_lobby_ui)
+	Lobby.i_joined_lobby.connect(_on_i_joined_lobby)
+	Lobby.i_left_lobby.connect(_on_i_left_lobby)
+	Lobby.i_updated.connect(update_lobby_ui)
 	Lobby.hosting_started.connect(update_lobby_ui)
 	Lobby.hosting_failed.connect(update_lobby_ui)
 	Lobby.hosting_stopped.connect(update_lobby_ui)
@@ -69,13 +69,13 @@ func _on_lobbies_refreshed(lobbies: Dictionary, error: String = "") -> void:
 	
 	update_lobby_ui()
 
-func _on_me_joined_lobby(player: Dictionary) -> void:
-	Lobby.lm("me_joined_lobby: ", player)
+func _on_i_joined_lobby(player: Dictionary) -> void:
+	Lobby.lm("i_joined_lobby: ", player)
 	%JoiningOverlay.hide()
 	update_lobby_ui()
 
-func _on_me_left_lobby(reason: String) -> void:
-	Lobby.lm("me_left_lobby: ", reason)
+func _on_i_left_lobby(reason: String) -> void:
+	Lobby.lm("i_left_lobby: ", reason)
 	%JoiningOverlay.hide()
 	update_lobby_ui()
 

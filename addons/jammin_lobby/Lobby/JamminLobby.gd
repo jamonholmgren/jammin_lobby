@@ -8,10 +8,10 @@ class_name JamminLobby extends Control
 # Signals ***********************************************************************
 
 # Signals for the local player
-signal me_connecting_to_lobby()
-signal me_joined_lobby(player: Dictionary)
-signal me_left_lobby(reason: String)
-signal me_updated(player: Dictionary)
+signal i_connecting_to_lobby()
+signal i_joined_lobby(player: Dictionary)
+signal i_left_lobby(reason: String)
+signal i_updated(player: Dictionary)
 
 # Signals for other players
 signal player_connecting_to_lobby(pid: int) # all we have is a pid, no player yet
@@ -73,13 +73,13 @@ func setup_signals() -> void:
   # Pass through signals from the Lobby singleton
 
   # Make sure we're not connecting signals twice
-  if Lobby.me_connecting_to_lobby.is_connected(me_connecting_to_lobby.emit): return
+  if Lobby.i_connecting_to_lobby.is_connected(i_connecting_to_lobby.emit): return
 
   # Signals for the local player
-  Lobby.me_connecting_to_lobby.connect(me_connecting_to_lobby.emit)
-  Lobby.me_joined_lobby.connect(me_joined_lobby.emit)
-  Lobby.me_left_lobby.connect(me_left_lobby.emit)
-  Lobby.me_updated.connect(me_updated.emit)
+  Lobby.i_connecting_to_lobby.connect(i_connecting_to_lobby.emit)
+  Lobby.i_joined_lobby.connect(i_joined_lobby.emit)
+  Lobby.i_left_lobby.connect(i_left_lobby.emit)
+  Lobby.i_updated.connect(i_updated.emit)
 
   # Signals for other players
   Lobby.player_connecting_to_lobby.connect(player_connecting_to_lobby.emit)

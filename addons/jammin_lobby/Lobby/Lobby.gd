@@ -6,10 +6,10 @@ extends JamminBase
 # Signals ***********************************************************************
 
 # Signals for the local player
-signal me_connecting_to_lobby()
-signal me_joined_lobby(player: Dictionary)
-signal me_left_lobby(reason: String)
-signal me_updated(player: Dictionary)
+signal i_connecting_to_lobby()
+signal i_joined_lobby(player: Dictionary)
+signal i_left_lobby(reason: String)
+signal i_updated(player: Dictionary)
 signal me_restored(player: Dictionary)
 
 # Signals for other players
@@ -171,6 +171,9 @@ func setup(settings: Dictionary):
 
 func configure(settings: Dictionary):
 	lm("configure")
+	if not config:
+		config = JamminLobby.new()
+		add_child(config)
 	if settings.has("lobby_name"): config.lobby_name = settings.lobby_name
 	if settings.has("game_port"): config.game_port = settings.game_port
 	if settings.has("broadcast_port"): config.broadcast_port = settings.broadcast_port
@@ -221,7 +224,7 @@ func start_server() -> void:
 	# Manually signal because Godot doesn't provide signals for server start
 	update_me({ "host": true, "in_lobby": true })
 	hosting_started.emit()
-	me_connecting_to_lobby.emit()
+	i_connecting_to_lobby.emit()
 	sync_me_with_host()
 
 func update_me(changes: Dictionary):
@@ -230,7 +233,7 @@ func update_me(changes: Dictionary):
 
 	me.merge(changes, true)
 	Options.set("player-" + str(save_slot), me)
-	me_updated.emit(me)
+	i_updated.emit(me)
 	sync_me_with_host()
 
 func sync_me_with_host():
@@ -267,7 +270,7 @@ func stop_server(message: String):
 	if not i_am_host(): return
 	close_game_peer()
 	update_me({ "host": false, "in_lobby": false })
-	me_left_lobby.emit(message)
+	i_left_lobby.emit(message)
 	hosting_stopped.emit(message)
 
 func server_disconnect_all_peers(reason: String = ""):
@@ -359,17 +362,17 @@ func update_players_from_host(updated_players: Dictionary):
 		if is_new:
 			players[pid] = {}
 			players[pid].merge(new_player, true)
-			if is_me: me_joined_lobby.emit(me)
+			if is_me: i_joined_lobby.emit(me)
 			else: player_joined_lobby.emit(new_player)
 		elif is_updated:
 			players[pid].merge(new_player, true)
-			if is_me: me_updated.emit(me)
+			if is_me: i_updated.emit(me)
 			else: player_updated.emit(new_player)
 
 	# Remove players that are no longer in the lobby
 	for pid in players.keys():
 		if not active_players.has(pid):
-			if is_me: me_left_lobby.emit("Lobby player left")
+			if is_me: i_left_lobby.emit("Lobby player left")
 			var p = players[pid]
 			players.erase(pid)
 			player_left_lobby.emit(p)
@@ -447,13 +450,13 @@ func join(lobby: Dictionary) -> void:
 	# 1. _on_peer_connected when connected to server (pid=1)
 	# 2. _on_connection_succeeded when successfully connected
 	# 3. _on_any_peer_connected for each existing peer
-	# These will emit various signals like me_connecting_to_lobby and player_connecting_to_lobby
+	# These will emit various signals like i_connecting_to_lobby and player_connecting_to_lobby
 	multiplayer.multiplayer_peer = peer
 
 func join_error(error: int) -> void:
 	lm("join_error: ", error)
 	close_game_peer()
-	me_left_lobby.emit("Failed to connect to lobby. Error code " + str(error))	
+	i_left_lobby.emit("Failed to connect to lobby. Error code " + str(error))	
 
 # Leave the current server
 func leave(message: String = ""):
@@ -543,7 +546,8 @@ func player_count() -> int:
 	if not online(): return 0
 	return player_ids().size()
 
-func find_by_pid(pid: int):
+# Can't type the return type since it can return null
+func find_by_pid(pid: int): # -> Dictionary | null
 	if pid == 0: return me
 	return players.get(pid, null)
 
@@ -613,20 +617,20 @@ func pong_client() -> void:
 # my player data over there so it'll let me in.
 func _on_connection_succeeded():
 	lm("_on_connection_succeeded")
-	me_connecting_to_lobby.emit()
+	i_connecting_to_lobby.emit()
 	sync_me_with_host()
 
 # We tried to join a lobby, but it failed for some reason.
 # Only called on clients.
 func _on_connection_failed(reason: String = ""):
 	lm("_on_connection_failed: ", reason)
-	me_left_lobby.emit(reason)
+	i_left_lobby.emit(reason)
 
 # We closed the connection or the server disconnected from us.
 func _on_connection_ended(reason: String = ""):
 	lm("_on_connection_ended: ", reason)
 	close_game_peer()
-	me_left_lobby.emit(reason)
+	i_left_lobby.emit(reason)
 	
 func _on_server_started(): hosting_started.emit()
 func _on_server_failed(message: String): hosting_failed.emit(message)
@@ -638,7 +642,7 @@ func _on_peer_connected(pid: int):
 	if pid == SERVER_ID:
 		# I joined a server
 		lm(" - _on_peer_connected: ", pid)
-		me_connecting_to_lobby.emit()
+		i_connecting_to_lobby.emit()
 		# This will update me as well as send my data to the host
 		update_me({ "in_lobby": true })
 	else:
@@ -654,7 +658,7 @@ func _on_peer_disconnected(pid: int, reason: String = ""):
 	# The server disconnected from us
 	if pid == SERVER_ID:
 		close_game_peer()
-		me_left_lobby.emit("Host disconnected")
+		i_left_lobby.emit("Host disconnected")
 		return
 
 	# OK, if we're the host, a client has disconnected from us

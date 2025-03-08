@@ -96,7 +96,7 @@ func _connect_signals():
 	else:
 		# Connect to player data changes
 		print("connecting to player data changes")
-		Lobby.me_updated.connect(_on_player_changed)
+		Lobby.i_updated.connect(_on_player_changed)
 
 func _load_saved_value():
 	var saved_value = default_value
