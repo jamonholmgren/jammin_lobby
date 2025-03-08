@@ -65,13 +65,13 @@ func _input(event: InputEvent) -> void:
 func fire() -> void:
 	# Only the host for this tank can fire
 	if Lobby.id() != get_multiplayer_authority(): return
-	spawn_bullet.rpc(bullet_spawn.global_transform, bullet_spawn.global_transform.basis.z * bullet_speed)
+	spawn_bullet.rpc(bullet_spawn.global_transform, bullet_spawn.global_transform.basis.z * bullet_speed, name + "-bullet-" + str(Engine.get_physics_frames()))
 
 	# Apply a force to the tank to knock it back
 	apply_central_impulse(-bullet_spawn.global_transform.basis.z * bullet_speed * 50.0)
 
 @rpc("reliable", "any_peer", "call_local")
-func spawn_bullet(start_transform: Transform3D, start_velo: Vector3) -> void:
+func spawn_bullet(start_transform: Transform3D, start_velo: Vector3, bullet_name: String) -> void:
 	Game.play_audio_3d(load("res://assets/tank-shot.mp3"), start_transform.origin)
 
 	var bullet = Game.spawn_at(preload("res://scenes/bullet.tscn"), start_transform.origin)
