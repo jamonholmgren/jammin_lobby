@@ -7,8 +7,9 @@ static var me: Tank
 @onready var barrel_rotation: Node3D = %BarrelRotation
 @onready var tank_camera: Camera3D = %TankCamera
 @onready var turret: MeshInstance3D = $tank/Turret
-@onready var r1: Node3D = %RotationPoint # For camera up/down
-@onready var r2: Node3D = %RotationPoint2 # For camera left/right
+@onready var cam_pan: Node3D = %RotationPoint # For camera left/right
+@onready var cam_tilt: Node3D = %RotationPoint2 # For camera up/down
+@onready var cam_global: Node3D = %GlobalRotation
 @onready var bullet_spawn: Node3D = %BulletSpawn # Where the bullet comes out
 @export var bullet_speed: float = 100.0
 @export var target_position: Vector3 = Vector3.ZERO
@@ -20,8 +21,11 @@ const ROTATION_SPEED = 3.0  # Adjust for smoother or snappier rotation
 func _ready() -> void:
 	# The first tank to spawn is us
 	if not me: me = self
+	# This lets us rotate the camera
+	cam_global.global_transform.basis = cam_pan.global_transform.basis
 
 func _physics_process(delta: float) -> void:
+	cam_pan.global_transform.basis = cam_global.global_transform.basis
 	rotate_toward_target(delta)
 	%EngineAudio.pitch_scale = (linear_velocity.length() / 100.0) + 0.5
 
@@ -42,7 +46,7 @@ func update_target_position() -> void:
 
 func rotate_toward_target(delta: float) -> void:
 	if target_position == Vector3.ZERO: return
-	turret.rotation.y = lerp_angle(turret.rotation.y, r1.rotation.y, ROTATION_SPEED * delta)
+	turret.rotation.y = lerp_angle(turret.rotation.y, cam_pan.rotation.y, ROTATION_SPEED * delta)
 	var barrel_to_target = target_position - barrel_rotation.global_position
 	var local_direction = barrel_rotation.global_transform.basis.inverse() * barrel_to_target
 	var target_pitch = atan2(-local_direction.y, sqrt(local_direction.x * local_direction.x + local_direction.z * local_direction.z))
@@ -54,10 +58,11 @@ func _input(event: InputEvent) -> void:
 	if Lobby.id() != get_multiplayer_authority(): return
 	
 	if event is InputEventMouseMotion:
+		cam_global.rotate_y(-event.relative.x * 0.005)
+		cam_tilt.rotate_x(event.relative.y * 0.005)
+		
 		# Check if it's still in the screen or not
-		r1.rotate_y(-event.relative.x * 0.005)
-		r2.rotate_x(event.relative.y * 0.005)
-		r2.rotation.x = clamp(r2.rotation.x, -1.5, 1.5)
+		cam_tilt.rotation.x = clamp(cam_tilt.rotation.x, -1.5, 1.5)
 		
 	if event.is_action_pressed("fire"): fire()
 
