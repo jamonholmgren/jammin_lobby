@@ -1,6 +1,6 @@
 class_name Tank extends VehicleBody3D
 
-var me: Tank
+static var me: Tank
 
 @export var pid: int
 
@@ -19,7 +19,7 @@ const ROTATION_SPEED = 3.0  # Adjust for smoother or snappier rotation
 
 func _ready() -> void:
 	# The first tank to spawn is us
-	me = self
+	if not me: me = self
 
 func _physics_process(delta: float) -> void:
 	rotate_toward_target(delta)

@@ -24,6 +24,7 @@ func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
   spawn_explosion.rpc(global_transform.origin, other_body)
 
 func cancel_timer() -> void:
+  if not explode_timer: return
   explode_timer.stop()
   explode_timer.queue_free()
   explode_timer = null
@@ -40,7 +41,7 @@ func spawn_explosion(location: Vector3, other_body: Node3D) -> void:
   if other_body is RigidBody3D and other_body.is_multiplayer_authority():
     other_body.apply_central_impulse(global_transform.basis.z * linear_velocity.length() * 10000.0)
 
-  var distance := global_transform.origin.distance_to(location)
+  var distance := Tank.me.global_transform.origin.distance_to(location)
   var speed_of_sound := 343.0
   var time_to_impact := distance / speed_of_sound
 
