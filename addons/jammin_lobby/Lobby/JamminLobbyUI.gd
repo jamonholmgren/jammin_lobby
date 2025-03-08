@@ -14,7 +14,7 @@ func _ready() -> void:
 	%RefreshButton.pressed.connect(_on_refresh_pressed)
 	%StartGameButton.pressed.connect(_on_start_game_pressed)
 
-	Lobby.me_restored.connect(update_lobby_ui)
+	Lobby.i_restored.connect(update_lobby_ui)
 	Lobby.i_connecting_to_lobby.connect(update_lobby_ui)
 	Lobby.i_joined_lobby.connect(_on_i_joined_lobby)
 	Lobby.i_left_lobby.connect(_on_i_left_lobby)

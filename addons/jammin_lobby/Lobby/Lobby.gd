@@ -10,7 +10,7 @@ signal i_connecting_to_lobby()
 signal i_joined_lobby(player: Dictionary)
 signal i_left_lobby(reason: String)
 signal i_updated(player: Dictionary)
-signal me_restored(player: Dictionary)
+signal i_restored(player: Dictionary)
 
 # Signals for other players
 signal player_connecting_to_lobby(pid: int) # all we have is a pid, no player yet
@@ -106,7 +106,7 @@ func restore() -> void:
 			me[key] = restored_data[key]
 		# Reset some values that shouldn't be persisted
 		me.merge({ "ready": false, "in_lobby": false, "host": false }, true)
-		me_restored.emit(me)
+		i_restored.emit(me)
 func _process(_delta) -> void:
 	if not discovery_server.is_bound(): set_process(false); return
 	check_for_clients_discovery()
