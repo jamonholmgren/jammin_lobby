@@ -35,11 +35,8 @@ func _physics_process(delta: float) -> void:
 	%EngineAudio.pitch_scale = (linear_velocity.length() / 100.0) + 0.5
 
 	# Add track marks if moving
-	if linear_velocity.length() > 1.0 and is_instance_valid(Tracks.instance):	
-		var wheel_positions: Array[Vector3] = []
-		for wheel in wheels: wheel_positions.append(wheel.global_position)
-		# Update track marks
-		last_track_pos = Tracks.instance.add_track_marks(global_position, wheel_positions, last_track_pos)
+	if linear_velocity.length() > 0.1 and Tracks.instance:
+		Tracks.instance.add_track_marks(self)
 
 	# Only the host for this tank can move it, and only if the menu is not visible
 	if Lobby.id() != get_multiplayer_authority(): return

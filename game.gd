@@ -46,8 +46,8 @@ func sees(from: Vector3, to: Vector3) -> bool:
 	var result: Dictionary = space_state.intersect_ray(ray_params)
 	return result.is_empty()
 
-# Draws points on a texture
-func draw_on_texture(texture: ImageTexture, locations: Array[Vector2i], size: int, color: Color, color_variance: float = 0.0) -> void:
+# Draws points on a texture with optional rotation and size
+func draw_on_texture(texture: ImageTexture, locations: Array[Vector2i], color: Color, size_x: int = 1, size_y: int = 1, rotation: float = 0.0, color_variance: float = 0.0) -> void:
 	var image: Image = texture.get_image()
 	
 	for location in locations:
@@ -55,9 +55,21 @@ func draw_on_texture(texture: ImageTexture, locations: Array[Vector2i], size: in
 		var y: int = location.y
 		# Make sure we're within bounds
 		if x < 0 or x >= image.get_width() or y < 0 or y >= image.get_height(): continue
-			
-		for dx in range(-size, size + 1):
-			for dy in range(-size, size + 1):
+		
+		# Calculate rotated rectangle bounds
+		for dy in range(-size_y, size_y + 1):
+			for dx in range(-size_x, size_x + 1):
+				# Rotate the point around the center
+				var rotated_x = dx * cos(rotation + PI/2) - dy * sin(rotation + PI/2)
+				var rotated_y = dx * sin(rotation + PI/2) + dy * cos(rotation + PI/2)
+				
+				# Round to nearest pixel
+				var pixel_x = x + round(rotated_x)
+				var pixel_y = y + round(rotated_y)
+				
+				# Check bounds
+				if pixel_x < 0 or pixel_x >= image.get_width() or pixel_y < 0 or pixel_y >= image.get_height(): continue
+					
 				var c: Color = color
 				if color_variance > 0.0:
 					c = Color(
@@ -65,7 +77,7 @@ func draw_on_texture(texture: ImageTexture, locations: Array[Vector2i], size: in
 						color.g + randf_range(-color_variance, color_variance),
 						color.b + randf_range(-color_variance, color_variance),
 						color.a)
-				image.set_pixel(x + dx, y + dy, c)
+				image.set_pixel(pixel_x, pixel_y, c)
 	
 	# Update the ImageTexture with the modified image
 	texture.update(image)

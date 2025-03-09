@@ -41,12 +41,17 @@ func setup_floor() -> void:
 	# print("Track system initialized!")
 
 # Call this from each tank when it moves
-func add_track_marks(tank_position: Vector3, wheel_positions: Array[Vector3], last_track_pos: Vector3) -> Vector3:
+func add_track_marks(tank: Tank) -> void:
+	var tank_position: Vector3 = tank.position
+	var wheel_positions: Array[Vector3] = []
+	for wheel in tank.wheels: wheel_positions.append(wheel.global_position)
+	var last_track_pos: Vector3 = tank.last_track_pos
+
 	# Check if tracks are enabled
-	if not floor_image_setup or floor_image == null: return tank_position
+	if not floor_image_setup or floor_image == null: return 
 		
 	# Skip if tank hasn't moved enough since last tracks
-	if last_track_pos.distance_to(tank_position) < track_spacing: return last_track_pos
+	if last_track_pos.distance_to(tank_position) < track_spacing: return
 		
 	# Convert world position to texture coordinates
 	# Assuming the floor is centered at origin and has size from level.tscn
@@ -61,6 +66,9 @@ func add_track_marks(tank_position: Vector3, wheel_positions: Array[Vector3], la
 		var tex_y: int = int((floor_size/2 - wheel_pos.x) * scale_factor)
 		track_locations.append(Vector2i(tex_x, tex_y))
 	
-	Game.draw_on_texture(floor_texture, track_locations, 4, Color(0.05, 0.05, 0.05, 1.0), 0.1)
+	# Calculate the rotation of the tank
+	var tank_rotation: float = atan2(tank.global_transform.basis.z.x, tank.global_transform.basis.z.z)
 	
-	return tank_position # Return updated last position 
+	Game.draw_on_texture(floor_texture, track_locations, Color(0.05, 0.05, 0.05, 1.0), 4, 1, tank_rotation, 0.1)
+	
+	tank.last_track_pos = tank_position
