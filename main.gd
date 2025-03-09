@@ -82,4 +82,6 @@ func spawn_tank_at(spawn_point_path: NodePath, sender_id: int) -> void:
 	tank.set_multiplayer_authority(sender_id)
 
 	# If it's my tank, set my camera to its camera
-	if sender_id == Lobby.id(): tank.get_node("%TankCamera").make_current()
+	if sender_id == Lobby.id():
+		Tank.me = tank
+		tank.get_node("%TankCamera").make_current()

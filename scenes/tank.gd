@@ -22,8 +22,6 @@ const ENGINE_POWER = 4000
 const ROTATION_SPEED = 3.0  # Adjust for smoother or snappier rotation
 
 func _ready() -> void:
-	# The first tank to spawn is us
-	if not me: me = self
 	# This lets us rotate the camera
 	cam_global.global_transform.basis = cam_pan.global_transform.basis
 
