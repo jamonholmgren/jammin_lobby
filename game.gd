@@ -1,5 +1,7 @@
 extends Node
 
+var status: StringName = &"Lobby" # or &"Game"
+
 # Autoloaded as "Game"
 # Mostly helper functions
 

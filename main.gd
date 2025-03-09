@@ -32,39 +32,49 @@ func hide_menu() -> void:
 	hud.show()
 
 func _on_game_event(command: String, _data: Dictionary = {}) -> void:
-	if command == "start_game":
-		# start the game
-		start_game()
+	if command == "start_game": start_game()
 
 func start_game() -> void:
-	spawn_tank_random()
+	Game.status = &"Game"
+	spawn_tank_random.rpc_id(Lobby.SERVER_ID)
 	hide_menu()
 
+@rpc("reliable", "any_peer", "call_local")
 func spawn_tank_random() -> void:
+	# Who's asking?
+	var sender_id = Lobby.sender_id()
+
 	# Pick a random place to spawn my tank
 	var spawn_points = get_tree().get_nodes_in_group("spawn_points")
 
 	# Pick a random spawn point, and then cycle through them to see if it's free
 	var start_index = randi() % spawn_points.size()
-	print("start_index: ", start_index)
+	# print("start_index: ", start_index)
 	for i in range(spawn_points.size()):
 		var check_index = (start_index + i) % spawn_points.size()
 		var spawn_point = spawn_points[check_index]
-		print("spawn_point: ", spawn_point)
+		# print("spawn_point: ", spawn_point)
 		if spawn_point.is_free():
 			# Tell everyone to spawn my tank
-			spawn_tank_at.rpc(spawn_point.get_path())
+			spawn_tank_at.rpc(spawn_point.get_path(), sender_id)
 			break
 
-@rpc("reliable", "any_peer", "call_local")
-func spawn_tank_at(spawn_point_path: NodePath) -> void:
-	var tank_name = "Tank-" + str(Lobby.sender_id())
+@rpc("reliable", "authority", "call_local")
+func spawn_tank_at(spawn_point_path: NodePath, sender_id: int) -> void:
+	var spawn_point = get_node(spawn_point_path)
+	var tank_name = "Tank-" + str(sender_id)
+	var tank_root: Node = level.get_node("%Tanks")
+
+	# Is the tank already in the scene?
+	var tank: Node3D = null
+	if tank_root.get_node(tank_name):
+		tank = tank_root.get_node(tank_name)
+	else:
+		tank = preload("res://scenes/tank.tscn").instantiate()
 	
 	# Spawn the tank
-	var spawn_point = get_node(spawn_point_path)
-	var tank = preload("res://scenes/tank.tscn").instantiate()
 	tank.name = tank_name
-	level.get_node("%Tanks").add_child(tank)
+	if not tank.get_parent(): tank_root.add_child(tank)
 	tank.position = spawn_point.position
 	tank.rotation = spawn_point.rotation
 	tank.set_multiplayer_authority(Lobby.sender_id())

@@ -123,7 +123,7 @@ func update_lobby_ui(_a = null, _b = null, _c = null, _d = null) -> void:
 	Lobby.lm("  --  Players: ", players)
 	JamminList.update_list(%PlayerRows, players, false, update_player_row)
 
-	%StartGameButton.disabled = not (Lobby.i_am_host() and all_ready())
+	%StartGameButton.disabled = Game.status != &"Lobby" or not (Lobby.i_am_host() and all_ready())
 	
 func all_ready() -> bool:
 	for player in Lobby.players.values():
