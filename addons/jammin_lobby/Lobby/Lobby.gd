@@ -41,8 +41,6 @@ signal game_event(command: String)
 
 # Constants **********************************************************
 
-const SERVER_ID := MultiplayerPeer.TARGET_PEER_SERVER
-
 static var config: JamminLobby = null
 
 # Lobby chat messages
@@ -61,6 +59,8 @@ var game_version: String = ProjectSettings.get_setting("application/config/versi
 
 var discovery_server: PacketPeerUDP
 var request: JamminRequest
+
+enum Status { Offline, Disconnected, Connecting, Connected, Hosting, Unknown }
 
 # This gets assigned to your player before you join a lobby
 # You can adjust these values as needed and save your player
@@ -240,7 +240,7 @@ func update_me(changes: Dictionary):
 func sync_me_with_host():
 	if not online(): return
 	lm("sync_me_with_host", online(), multiplayer.get_peers())
-	update_player_data.rpc_id(SERVER_ID, me)
+	update_player_data.rpc_id(host_id(), me)
 
 @rpc("any_peer", "reliable", "call_local")
 func update_player_data(player: Dictionary):
@@ -280,7 +280,7 @@ func server_disconnect_all_peers(reason: String = ""):
 
 func server_disconnect_peer(pid: int, reason: String = "") -> void:
 	if not i_am_host(): return
-	if pid == SERVER_ID: return # can't disconnect the server; use stop_server instead
+	if pid == host_id(): return # can't disconnect the server; use stop_server instead
 	if not pid_in_lobby(pid): return
 	multiplayer.multiplayer_peer.disconnect_peer(pid)
 	if not _host_players.has(pid): return
@@ -351,7 +351,7 @@ func update_players_from_host(updated_players: Dictionary):
 		var is_new: bool = !players.has(pid)
 		var is_updated: bool = !is_new and players[pid].hash() != new_player.hash()
 		var is_me: bool = pid == id()
-		var is_host: bool = pid == SERVER_ID
+		var is_host: bool = pid == host_id()
 		
 		# No change? skip
 		if not is_new and not is_updated: continue
@@ -487,7 +487,7 @@ func send_chat(message: String):
 	if not online(): return send_system_chat(message)
 	
 	# Send to host, who will then broadcast to all clients
-	host_send_chat.rpc_id(SERVER_ID, message)
+	host_send_chat.rpc_id(host_id(), message)
 
 @rpc("any_peer", "reliable", "call_local")
 func host_send_chat(message: String):
@@ -539,7 +539,7 @@ func update_chat_messages(messages: Array[Dictionary]):
 
 func player_ids() -> Array[int]:
 	if not online(): return []
-	var ids: Array[int] = [SERVER_ID]
+	var ids: Array[int] = [host_id()]
 	for pid in multiplayer.get_peers(): if not ids.has(pid): ids.append(pid)
 	return ids
 
@@ -565,33 +565,39 @@ func id() -> int:
 	if not online(): return 0
 	return multiplayer.multiplayer_peer.get_unique_id()
 
+func host_id() -> int:
+	if not online(): return 0
+	return multiplayer.multiplayer_peer.TARGET_PEER_SERVER
+
 # Returns the status of the multiplayer peer (or a specific peer, if you don't give one)
-# Returns: "Offline", "Disconnected", "Connecting", "Connected", "Hosting"
-func status(peer: MultiplayerPeer = null) -> StringName:
-	if not peer and not multiplayer: return &"Offline"
+# Returns: Status.Offline, Status.Disconnected, Status.Connecting, Status.Connected, Status.Hosting, Status.Unknown
+func status(peer: MultiplayerPeer = null) -> Status:
+	if not peer and not multiplayer: return Status.Offline
 	if peer == null: peer = multiplayer.multiplayer_peer
-	if peer is not ENetMultiplayerPeer: return &"Offline"
-	if peer.get_connection_status() == MultiplayerPeer.CONNECTION_DISCONNECTED: return &"Disconnected"
-	if peer.get_connection_status() == MultiplayerPeer.CONNECTION_CONNECTING: return &"Connecting"
+	if peer is not ENetMultiplayerPeer: return Status.Offline
+	if peer.get_connection_status() == MultiplayerPeer.CONNECTION_DISCONNECTED: return Status.Disconnected
+	if peer.get_connection_status() == MultiplayerPeer.CONNECTION_CONNECTING: return Status.Connecting
 	if peer.get_connection_status() == MultiplayerPeer.CONNECTION_CONNECTED:
-		if peer.get_unique_id() == SERVER_ID: return &"Hosting"
-		
-		# # This could be used, but tbh the above is reliable enough
-		# # if paired with the ENetMultiplayerPeer type check above.
-		# var p = multiplayer.multiplayer_peer
-		# if peer == p and multiplayer.is_server(): return &"Hosting"
-		
-		return &"Connected"
-	return &"Unknown"
+		# Don't use host_id() because it's recursive and calls this
+		var server_id: int = multiplayer.multiplayer_peer.TARGET_PEER_SERVER
+		if peer.get_unique_id() == server_id: return Status.Hosting
+		return Status.Connected
+	return Status.Unknown
 
-func sender_id() -> int: return multiplayer.get_remote_sender_id()
+func sender_id() -> int: return multiplayer.get_remote_sender_id() if online() else 0
 
-func online() -> bool: return status() == &"Connected" or status() == &"Hosting"
-func pid_in_lobby(pid: int) -> bool: return online() and (pid == SERVER_ID or multiplayer.get_peers().has(pid))
-func i_am_host() -> bool: return status() == &"Hosting"
-func is_client() -> bool: return status() == &"Connected"
+func online() -> bool: return status() == Status.Connected or status() == Status.Hosting
+func offline() -> bool: return not online()
+
+func pid_in_lobby(pid: int) -> bool: return online() and (pid == host_id() or multiplayer.get_peers().has(pid))
+func i_am_host() -> bool: return status() == Status.Hosting
+func is_client() -> bool: return status() == Status.Connected
 func is_authority(node: Node) -> bool: return online() and node.is_multiplayer_authority()
 func is_me(p: Dictionary) -> bool: return p and me.id == p.id
+
+func set_authority(node: Node, pid: int) -> void:
+	if not online(): return
+	node.set_multiplayer_authority(pid)
 
 func update_ping() -> void:
 	if not online(): return
@@ -640,7 +646,7 @@ func _on_server_failed(message: String): hosting_failed.emit(message)
 # but only if I'm the server or they're the server
 func _on_peer_connected(pid: int):
 	lm("_on_peer_connected: ", pid)
-	if pid == SERVER_ID:
+	if pid == host_id():
 		# I joined a server
 		lm(" - _on_peer_connected: ", pid)
 		i_connecting_to_lobby.emit()
@@ -657,7 +663,7 @@ func _on_peer_disconnected(pid: int, reason: String = ""):
 	lm("_on_peer_disconnected: ", pid, " " + reason)
 
 	# The server disconnected from us
-	if pid == SERVER_ID:
+	if pid == host_id():
 		close_game_peer()
 		i_left_lobby.emit("Host disconnected")
 		return

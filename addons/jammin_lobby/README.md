@@ -129,7 +129,7 @@ Lobby.on_ask("start_game", func(data, requester):
 )
 
 # On the client
-var response = await Lobby.ask(Lobby.SERVER_ID, "start_game", {})
+var response = await Lobby.ask(Lobby.host_id(), "start_game", {})
 if response.result == "ok":
     start_game()
 ```

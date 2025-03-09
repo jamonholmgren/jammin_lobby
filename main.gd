@@ -13,6 +13,7 @@ func _ready() -> void:
 	hud = get_node("HUD")
 	Lobby.game_event.connect(_on_game_event)
 	Lobby.restore()
+	%StartOfflineGame.pressed.connect(start_game)
 
 func _input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_cancel"):
@@ -36,12 +37,12 @@ func _on_game_event(command: String, _data: Dictionary = {}) -> void:
 
 func start_game() -> void:
 	Game.status = &"Game"
-	spawn_tank_random.rpc_id(Lobby.SERVER_ID)
+	spawn_tank_random.rpc_id(Lobby.host_id())
 	hide_menu()
 
 @rpc("reliable", "any_peer", "call_local")
 func spawn_tank_random() -> void:
-	if not Lobby.i_am_host(): return
+	if Lobby.offline() or not Lobby.i_am_host(): return
 
 	# Who's asking?
 	var sender_id = Lobby.sender_id()
@@ -58,7 +59,8 @@ func spawn_tank_random() -> void:
 		# print("spawn_point: ", spawn_point)
 		if spawn_point.is_free():
 			# Tell everyone to spawn my tank
-			spawn_tank_at.rpc(spawn_point.get_path(), sender_id)
+			if Lobby.online(): spawn_tank_at.rpc(spawn_point.get_path(), sender_id)
+			else: spawn_tank_at(spawn_point.get_path(), sender_id)
 			break
 
 @rpc("reliable", "authority", "call_local")

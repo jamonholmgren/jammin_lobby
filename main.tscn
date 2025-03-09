@@ -20,8 +20,15 @@ parameters/looping = true
 
 [node name="JamminLobbyUI" parent="." instance=ExtResource("2_3y7pk")]
 
+[node name="StartOfflineGame" type="Button" parent="JamminLobbyUI/MarginContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/Sidebar/MarginContainer/CreateLobby" index="1"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Start Offline Game"
+
 [node name="HUD" parent="." instance=ExtResource("4_1bvp3")]
 visible = false
 
 [node name="Explosion" parent="." instance=ExtResource("5_lquwl")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 17.1596, 15.3186, -6.7859)
+
+[editable path="JamminLobbyUI"]

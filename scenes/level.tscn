@@ -243,6 +243,7 @@ material = SubResource("StandardMaterial3D_w8frs")
 
 [node name="Tracks" type="Node" parent="."]
 script = ExtResource("2_ppgk2")
+track_spacing = 1.5
 
 [node name="Tanks" type="Node3D" parent="."]
 unique_name_in_owner = true

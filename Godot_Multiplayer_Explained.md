@@ -60,8 +60,10 @@ func online() -> bool:
 
 > [!NOTE]
 > JamminLobby not only does this, but also provides signals for each of the
-> connection statuses. It also has status strings for each connection type:
-> `Lobby.status() # "Offline", "Connecting", "Connected", "Server"`
+> connection statuses. It also has status enums for each connection type.
+> Lobby.Status.Offline, Lobby.Status.Disconnected, Lobby.Status.Connecting,
+> Lobby.Status.Connected, Lobby.Status.Hosting, Lobby.Status.Unknown
+> `Lobby.status()`
 
 ## Lifecycle Events
 
