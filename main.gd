@@ -85,3 +85,4 @@ func spawn_tank_at(spawn_point_path: NodePath, sender_id: int) -> void:
 	if sender_id == Lobby.id():
 		Tank.me = tank
 		tank.get_node("%TankCamera").make_current()
+		tank.get_node("%FrontIndicator").show()

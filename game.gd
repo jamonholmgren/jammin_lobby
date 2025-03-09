@@ -1,5 +1,7 @@
 extends Node
 
+# Game state and some helper functions
+
 var status: StringName = &"Lobby" # or &"Game"
 
 # Autoloaded as "Game"
@@ -43,3 +45,27 @@ func sees(from: Vector3, to: Vector3) -> bool:
 	ray_params.collision_mask = 1 # obstacles only
 	var result: Dictionary = space_state.intersect_ray(ray_params)
 	return result.is_empty()
+
+# Draws points on a texture
+func draw_on_texture(texture: ImageTexture, locations: Array[Vector2i], size: int, color: Color, color_variance: float = 0.0) -> void:
+	var image: Image = texture.get_image()
+	
+	for location in locations:
+		var x: int = location.x
+		var y: int = location.y
+		# Make sure we're within bounds
+		if x < 0 or x >= image.get_width() or y < 0 or y >= image.get_height(): continue
+			
+		for dx in range(-size, size + 1):
+			for dy in range(-size, size + 1):
+				var c: Color = color
+				if color_variance > 0.0:
+					c = Color(
+						color.r + randf_range(-color_variance, color_variance),
+						color.g + randf_range(-color_variance, color_variance),
+						color.b + randf_range(-color_variance, color_variance),
+						color.a)
+				image.set_pixel(x + dx, y + dy, c)
+	
+	# Update the ImageTexture with the modified image
+	texture.update(image)

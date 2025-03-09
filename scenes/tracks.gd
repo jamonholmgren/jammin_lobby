@@ -38,10 +38,10 @@ func setup_floor() -> void:
 	floor_node.material.albedo_texture = floor_texture
 	
 	floor_image_setup = true
-	print("Track system initialized!")
+	# print("Track system initialized!")
 
 # Call this from each tank when it moves
-func add_track_marks(tank_position: Vector3, wheel_positions: Array, last_track_pos: Vector3) -> Vector3:
+func add_track_marks(tank_position: Vector3, wheel_positions: Array[Vector3], last_track_pos: Vector3) -> Vector3:
 	# Check if tracks are enabled
 	if not floor_image_setup or floor_image == null: return tank_position
 		
@@ -50,29 +50,17 @@ func add_track_marks(tank_position: Vector3, wheel_positions: Array, last_track_
 		
 	# Convert world position to texture coordinates
 	# Assuming the floor is centered at origin and has size from level.tscn
-	var floor_size: float = 350.0
+	var floor_size: float = 200.0
 	var tex_size: int = floor_image.get_width()
 	var scale_factor: float = tex_size / floor_size
 	
 	# Draw tracks at each wheel position
+	var track_locations: Array[Vector2i] = []
 	for wheel_pos in wheel_positions:
-		var tex_x: int = int((wheel_pos.z - floor_size/2) * scale_factor)
-		var tex_z: int = int((wheel_pos.x + floor_size/2) * scale_factor)
-		
-		# Make sure we're within bounds
-		if tex_x < 0 or tex_x >= tex_size or tex_z < 0 or tex_z >= tex_size: continue
-			
-		# Draw a small dark track at this position
-		var track_color: Color = Color(0.05, 0.05, 0.05, 1.0)
-		var track_size: int = 3
-		for x in range(-track_size, track_size + 1):
-			for z in range(-track_size, track_size + 1):
-				var px = tex_x + x
-				var pz = tex_z + z
-				if px >= 0 and px < tex_size and pz >= 0 and pz < tex_size:
-					floor_image.set_pixel(px, pz, track_color)
+		var tex_x: int = int((floor_size/2 - wheel_pos.z) * scale_factor)
+		var tex_y: int = int((floor_size/2 - wheel_pos.x) * scale_factor)
+		track_locations.append(Vector2i(tex_x, tex_y))
 	
-	# Update the ImageTexture with the modified image
-	floor_texture.update(floor_image)
+	Game.draw_on_texture(floor_texture, track_locations, 4, Color(0.05, 0.05, 0.05, 1.0), 0.1)
 	
 	return tank_position # Return updated last position 

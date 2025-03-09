@@ -17,7 +17,8 @@ static var me: Tank
 
 var can_fire = true
 var last_track_pos = Vector3.ZERO
-
+var wheels: Array[VehicleWheel3D] = []
+		
 const MAX_STEER = 0.9
 const ENGINE_POWER = 4000
 const ROTATION_SPEED = 3.0  # Adjust for smoother or snappier rotation
@@ -25,6 +26,8 @@ const ROTATION_SPEED = 3.0  # Adjust for smoother or snappier rotation
 func _ready() -> void:
 	# This lets us rotate the camera
 	cam_global.global_transform.basis = cam_pan.global_transform.basis
+	for wheel in get_children():
+		if wheel is VehicleWheel3D: wheels.append(wheel)
 
 func _physics_process(delta: float) -> void:
 	cam_pan.global_transform.basis = cam_global.global_transform.basis
@@ -32,12 +35,9 @@ func _physics_process(delta: float) -> void:
 	%EngineAudio.pitch_scale = (linear_velocity.length() / 100.0) + 0.5
 
 	# Add track marks if moving
-	if linear_velocity.length() > 1.0 and is_instance_valid(Tracks.instance):
-		# Get tank wheel positions
-		var wheel_positions = []
-		for wheel in [$VehicleWheel3D, $VehicleWheel3D2, $VehicleWheel3D3, $VehicleWheel3D4]:
-			wheel_positions.append(wheel.global_position)
-			
+	if linear_velocity.length() > 1.0 and is_instance_valid(Tracks.instance):	
+		var wheel_positions: Array[Vector3] = []
+		for wheel in wheels: wheel_positions.append(wheel.global_position)
 		# Update track marks
 		last_track_pos = Tracks.instance.add_track_marks(global_position, wheel_positions, last_track_pos)
 
