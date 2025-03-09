@@ -81,21 +81,14 @@ func _setup_auto_property_and_signal():
 		control_signal = AUTO_SIGNALS.get(control_class, "")
 
 func _connect_signals():
-	# Connect to our own value_changed signal to save changes
-	value_changed.connect(_save_value)
+	value_changed.connect(_save_value_to_storage)
 	
-	# Connect to the control's signal for changes
-	print("control_signal: ", control_signal)
 	if control_signal and control.has_signal(control_signal):
 		control.connect(control_signal, _on_control_changed)
 	
-	# Connect to Options.updated for external changes
 	if not is_player_specific:
-		print("connecting to options changes")
 		Options.updated.connect(_on_option_changed)
 	else:
-		# Connect to player data changes
-		print("connecting to player data changes")
 		Lobby.i_updated.connect(_on_player_changed)
 
 func _load_saved_value():
@@ -105,9 +98,9 @@ func _load_saved_value():
 	if is_player_specific: options = Lobby.me
 	if options.has(option_name): saved_value = options[option_name]
 
-	set_value(saved_value)
+	set_control_value(saved_value)
 
-func _save_value(key: String, value: Variant):
+func _save_value_to_storage(key: String, value: Variant):
 	if is_player_specific:
 		# Create a dictionary with just this option and update the player
 		Lobby.update_me({ option_name: value })
@@ -117,31 +110,40 @@ func _save_value(key: String, value: Variant):
 
 func _on_control_changed(arg1 = null, arg2 = null, arg3 = null):
 	# Handle different signal patterns
-	var value = get_value()
+	var value = _get_control_value()
 	value_changed.emit(option_name, value)
+	_save_value_to_storage(option_name, value)
 
 func _on_option_changed(key: String, value: Variant):
-	print("option changed: ", key, " = ", value)
-	if key == option_name:
-		set_value(value)
+	if key == option_name: set_control_value(value)
 
 func _on_player_changed(player: Dictionary):
-	print("player changed: ", player)
-	if option_name in player: set_value(player[option_name])
+	if option_name in player: set_control_value(player[option_name])
 
-func set_value(value: Variant):
-	# Skip if the control already has this value
-	if get_value() == value: return
-
-	# Convert value to correct type
+func set_control_value(value: Variant):
+	assert(control != null, "Control is null")
+	assert(control_value_property != "", "Control value property is empty")
+	if control is ItemList: return _set_item_list_value(value)
+	if _get_control_value() == value: return
 	value = _convert_value_type(value)
-	
-	# Set the control's value
-	set_control_value(value)
+	_set_control_value(value)
 
-func get_value() -> Variant:
-	if not control_value_property: return null
-	return control.get(control_value_property)
+func _get_control_value() -> Variant:
+	assert(control != null, "Control is null")
+	assert(control_value_property != "", "Control value property is empty")
+	if control is ItemList: return _get_item_list_value()
+	return _convert_value_type(control.get(control_value_property))
+
+func _get_item_list_value() -> String:
+	var selected_items: PackedInt32Array = control.get_selected_items()
+	if selected_items.size() == 0: return default_value
+	var item_index = selected_items[0]
+	var item_text = control.get_item_text(item_index)
+	return item_text
+
+func _set_item_list_value(value: String):
+	if _get_item_list_value() == value: return
+	control.selected = control.get_item_index(value)
 
 func _convert_value_type(value: Variant) -> Variant:
 	if value == null: return default_value
@@ -156,10 +158,13 @@ func _convert_value_type(value: Variant) -> Variant:
 			return value
 	return value
 
-func set_control_value(value: Variant):
+func _set_control_value(value: Variant):
 	if control_value_property != "": control.set(control_value_property, value); return
 
 	# Handle specific control types
+	if control is ItemList: _set_item_list_value(value); return
+	if control is CheckBox: control.button_pressed = bool(value); return
+	if control is CheckButton: control.button_pressed = bool(value); return
 	if control is LineEdit: control.text = str(value); return
 	if control is TextEdit: control.text = str(value); return
 	if control is SpinBox: control.value = float(value); return

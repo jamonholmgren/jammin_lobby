@@ -12,11 +12,15 @@ func _ready() -> void:
 	%LeaveLobbyButton.pressed.connect(_on_leave_lobby_pressed)
 	%Username.text_changed.connect(_on_username_changed)
 	%RefreshButton.pressed.connect(_on_refresh_pressed)
+	%JoinByIPButton.pressed.connect(_on_join_by_ip_pressed)
 	%StartGameButton.pressed.connect(_on_start_game_pressed)
+
+	%PortInput.text = str(Lobby.config.game_port)
 
 	Lobby.i_restored.connect(update_lobby_ui)
 	Lobby.i_connecting_to_lobby.connect(update_lobby_ui)
 	Lobby.i_joined_lobby.connect(_on_i_joined_lobby)
+	Lobby.i_failed_to_join_lobby.connect(_on_i_failed_to_join_lobby)
 	Lobby.i_left_lobby.connect(_on_i_left_lobby)
 	Lobby.i_updated.connect(update_lobby_ui)
 	Lobby.hosting_started.connect(update_lobby_ui)
@@ -60,6 +64,20 @@ func _on_refresh_pressed() -> void:
 
 	Lobby.update_ping()
 
+func _on_join_by_ip_pressed() -> void:
+	var ip_address = %IPAddressInput.text
+	var port = %PortInput.text
+	if ip_address.length() <= 0 or port.length() <= 0:
+		var original_text = %JoinByIPButton.text
+		%JoinByIPButton.text = "Invalid IP or port"
+		%JoinByIPButton.disabled = true
+		await get_tree().create_timer(2.0).timeout
+		%JoinByIPButton.text = original_text
+		%JoinByIPButton.disabled = false
+		return
+	%JoinByIPButton.text = "Joining..."
+	Lobby.join({ "ip": ip_address, "port": port })
+
 func _on_lobbies_refreshed(lobbies: Dictionary, error: String = "") -> void:
 	%RefreshButton.disabled = false
 	if error:
@@ -73,6 +91,13 @@ func _on_i_joined_lobby(player: Dictionary) -> void:
 	Lobby.lm("i_joined_lobby: ", player)
 	%JoiningOverlay.hide()
 	update_lobby_ui()
+
+func _on_i_failed_to_join_lobby(reason: String) -> void:
+	%JoinByIPButton.text = "Failed to join lobby: " + reason
+	await get_tree().create_timer(2.0).timeout
+	%JoinByIPButton.text = "Join by IP"
+	%JoinByIPButton.disabled = false
+	%JoinByIPButton.show()
 
 func _on_i_left_lobby(reason: String) -> void:
 	Lobby.lm("i_left_lobby: ", reason)

@@ -38,7 +38,14 @@ func autosave() -> void:
 	debounce(500, save)
 
 func save() -> JamminOptions:
+	# If there's already a saved file, see if anything has changed
+	var saved_data: Dictionary = FileUtils.load_json(save_file)
+	if FileUtils.is_eq(data, saved_data): return self
+
+	# Make a backup
 	backup()
+
+	# Save the new data
 	FileUtils.save_json(save_file, data)
 
 	# Test if the newly saved file is valid

@@ -10,6 +10,7 @@ class_name JamminLobby extends Control
 # Signals for the local player
 signal i_connecting_to_lobby()
 signal i_joined_lobby(player: Dictionary)
+signal i_failed_to_join_lobby(reason: String)
 signal i_left_lobby(reason: String)
 signal i_updated(player: Dictionary)
 
@@ -78,6 +79,7 @@ func setup_signals() -> void:
   # Signals for the local player
   Lobby.i_connecting_to_lobby.connect(i_connecting_to_lobby.emit)
   Lobby.i_joined_lobby.connect(i_joined_lobby.emit)
+  Lobby.i_failed_to_join_lobby.connect(i_failed_to_join_lobby.emit)
   Lobby.i_left_lobby.connect(i_left_lobby.emit)
   Lobby.i_updated.connect(i_updated.emit)
 

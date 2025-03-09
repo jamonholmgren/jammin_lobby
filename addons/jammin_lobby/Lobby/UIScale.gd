@@ -1,6 +1,5 @@
 class_name JamminUIScale extends Node
 
-
 var _last_size: Vector2i = Vector2i(0, 0)
 var _base_resolution: Vector2 = Vector2(1920, 1080)
 var _enabled: bool = false

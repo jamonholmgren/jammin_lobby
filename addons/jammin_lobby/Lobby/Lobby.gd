@@ -8,6 +8,7 @@ extends JamminBase
 # Signals for the local player
 signal i_connecting_to_lobby()
 signal i_joined_lobby(player: Dictionary)
+signal i_failed_to_join_lobby(reason: String)
 signal i_left_lobby(reason: String)
 signal i_updated(player: Dictionary)
 signal i_restored(player: Dictionary)
@@ -456,7 +457,7 @@ func join(lobby: Dictionary) -> void:
 func join_error(error: int) -> void:
 	lm("join_error: ", error)
 	close_game_peer()
-	i_left_lobby.emit("Failed to connect to lobby. Error code " + str(error))	
+	i_failed_to_join_lobby.emit("Failed to connect to lobby. Error code " + str(error))	
 
 # Leave the current server
 func leave(message: String = ""):
@@ -624,7 +625,7 @@ func _on_connection_succeeded():
 # Only called on clients.
 func _on_connection_failed(reason: String = ""):
 	lm("_on_connection_failed: ", reason)
-	i_left_lobby.emit(reason)
+	i_failed_to_join_lobby.emit(reason)
 
 # We closed the connection or the server disconnected from us.
 func _on_connection_ended(reason: String = ""):
