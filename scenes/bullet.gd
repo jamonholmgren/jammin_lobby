@@ -46,3 +46,9 @@ func spawn_explosion(location: Vector3, other_body_path: NodePath) -> void:
 	# play audio
 	Game.play_audio_3d(load("res://assets/impact.mp3"), location)
 	queue_free()
+
+	# draw a scorch mark on the texture we hit
+	var texture: ImageTexture = other_body.texture
+	var loc: Vector2i = Game.world_to_texture_coords(texture, other_body.global_transform.origin)
+	var locations: Array[Vector2i] = [loc]
+	Game.draw_on_texture(texture, locations, Color.RED, 10, 10, 0.0, 0.0)

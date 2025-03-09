@@ -1,4 +1,4 @@
-[gd_scene load_steps=19 format=3 uid="uid://d3pjxi6563ipv"]
+[gd_scene load_steps=23 format=3 uid="uid://d3pjxi6563ipv"]
 
 [ext_resource type="Shader" uid="uid://sdxnw5vvlhl4" path="res://scenes/dome.gdshader" id="1_w8frs"]
 [ext_resource type="Script" uid="uid://dkgm43rno2pp2" path="res://scenes/spawn_point.gd" id="2_a7mro"]
@@ -32,7 +32,6 @@ volumetric_fog_density = 0.001
 volumetric_fog_length = 200.0
 
 [sub_resource type="FastNoiseLite" id="FastNoiseLite_w7c3h"]
-noise_type = 4
 frequency = 1.0
 
 [sub_resource type="NoiseTexture2D" id="NoiseTexture2D_w8frs"]
@@ -40,9 +39,38 @@ width = 2048
 height = 2048
 noise = SubResource("FastNoiseLite_w7c3h")
 
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_2r41h"]
+noise_type = 4
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_klq6b"]
+in_3d_space = true
+noise = SubResource("FastNoiseLite_2r41h")
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_ppgk2"]
+frequency = 0.291
+fractal_type = 3
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_2r41h"]
+noise = SubResource("FastNoiseLite_ppgk2")
+
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_0tuir"]
 albedo_color = Color(0.19474, 0.189571, 0.206636, 1)
 albedo_texture = SubResource("NoiseTexture2D_w8frs")
+roughness_texture = SubResource("NoiseTexture2D_w8frs")
+emission = Color(1, 1, 1, 1)
+emission_energy_multiplier = 0.01
+normal_enabled = true
+normal_texture = SubResource("NoiseTexture2D_2r41h")
+heightmap_enabled = true
+heightmap_scale = 0.04
+heightmap_texture = SubResource("NoiseTexture2D_w8frs")
+backlight_enabled = true
+backlight = Color(0.977937, 0.977937, 0.977937, 1)
+backlight_texture = SubResource("NoiseTexture2D_klq6b")
+refraction_scale = -1.0
+refraction_texture = SubResource("NoiseTexture2D_w8frs")
+texture_filter = 5
+proximity_fade_distance = 0.01
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_mx8sn"]
 render_priority = 0

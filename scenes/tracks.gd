@@ -62,9 +62,8 @@ func add_track_marks(tank: Tank) -> void:
 	# Draw tracks at each wheel position
 	var track_locations: Array[Vector2i] = []
 	for wheel_pos in wheel_positions:
-		var tex_x: int = int((floor_size/2 - wheel_pos.z) * scale_factor)
-		var tex_y: int = int((floor_size/2 - wheel_pos.x) * scale_factor)
-		track_locations.append(Vector2i(tex_x, tex_y))
+		var loc: Vector2i = Game.world_to_texture_coords(floor_texture, wheel_pos)
+		track_locations.append(loc)
 	
 	# Calculate the rotation of the tank
 	var tank_rotation: float = atan2(tank.global_transform.basis.z.x, tank.global_transform.basis.z.z)
