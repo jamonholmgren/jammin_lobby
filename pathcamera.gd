@@ -8,6 +8,4 @@ func _process(delta: float) -> void:
   look_at(target.global_transform.origin, Vector3.UP)
 
   # Move the camera along the path
-  carrier.progress += delta
-
-
+  carrier.progress += delta * 10.0

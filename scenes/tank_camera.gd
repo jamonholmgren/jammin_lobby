@@ -35,4 +35,3 @@ func raycast_collision() -> Vector3:
 	# #new_intersection.collision_mask = 128
 	
 	# return get_world_3d().direct_space_state.intersect_ray(new_intersection)
-

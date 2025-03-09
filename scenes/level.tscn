@@ -47,7 +47,7 @@ albedo_texture = SubResource("NoiseTexture2D_w8frs")
 render_priority = 0
 shader = ExtResource("1_w8frs")
 shader_parameter/swirl_color = Color(0.3, 0.7, 1, 0.3)
-shader_parameter/swirl_speed = 0.1
+shader_parameter/swirl_speed = 2.0
 shader_parameter/swirl_scale = 1.0
 
 [sub_resource type="SphereMesh" id="SphereMesh_ppgk2"]
@@ -325,7 +325,7 @@ transform = Transform3D(1, 0, 0, 0, 0.96481, 0.262947, 0, -0.262947, 0.96481, -1
 curve = SubResource("Curve3D_w8frs")
 
 [node name="PathFollow3D" type="PathFollow3D" parent="Path3D"]
-transform = Transform3D(-0.67367, 0.126385, -0.728145, 0, 0.985267, 0.171014, 0.739033, 0.115207, -0.663745, -28.1874, -62.8971, 230.784)
+transform = Transform3D(-0.67367, 0.126385, -0.728145, -7.45059e-09, 0.985267, 0.171014, 0.739033, 0.115207, -0.663745, -28.1874, -62.8971, 230.784)
 
 [node name="Camera3D" type="Camera3D" parent="Path3D/PathFollow3D" node_paths=PackedStringArray("target", "carrier")]
 current = true

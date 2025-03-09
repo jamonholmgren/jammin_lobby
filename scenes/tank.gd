@@ -13,6 +13,7 @@ static var me: Tank
 @onready var bullet_spawn: Node3D = %BulletSpawn # Where the bullet comes out
 @export var bullet_speed: float = 100.0
 @export var target_position: Vector3 = Vector3.ZERO
+@export var health: int = 50
 
 const MAX_STEER = 0.9
 const ENGINE_POWER = 4000
@@ -84,4 +85,15 @@ func spawn_bullet(start_transform: Transform3D, start_velo: Vector3, bullet_name
 
 	Game.play_audio_3d(load("res://assets/tank-shot.mp3"), start_transform.origin)
 
+func take_damage(component):
+	if Lobby.id() != get_multiplayer_authority(): return
+	if component.name == "Turret":
+		health -= 20
+	elif component.name == "Main":
+		health -= 10
+	if health <= 0:
+		die.rpc()
 
+@rpc("reliable", "any_peer", "call_local")
+func die() -> void:
+	self.hide()

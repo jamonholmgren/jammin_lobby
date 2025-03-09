@@ -1,15 +1,22 @@
-[gd_scene load_steps=9 format=3 uid="uid://damsrqwlonlca"]
+[gd_scene load_steps=12 format=3 uid="uid://damsrqwlonlca"]
 
 [ext_resource type="Script" uid="uid://cju4lvl11s0vj" path="res://scenes/tank.gd" id="1_4piap"]
 [ext_resource type="PackedScene" uid="uid://7fcqwu6k3e4x" path="res://assets/tank.glb" id="2_ibak5"]
 [ext_resource type="Script" uid="uid://d04mbnk6srgin" path="res://scenes/tank_camera.gd" id="3_ikjma"]
+[ext_resource type="Script" uid="uid://ce4xbjidibl23" path="res://scenes/hitbox.gd" id="3_lj6hj"]
 [ext_resource type="AudioStream" uid="uid://ctah1rvpv26qm" path="res://assets/enginesound.ogg" id="4_k4vtj"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_r72yb"]
 albedo_color = Color(0.288518, 0.288518, 0.288518, 1)
 
+[sub_resource type="BoxShape3D" id="BoxShape3D_1ixom"]
+size = Vector3(3, 1, 3.5)
+
 [sub_resource type="PrismMesh" id="PrismMesh_xn72j"]
 size = Vector3(0.3, 0.3, 0.2)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_k4vtj"]
+size = Vector3(4, 1.5, 5.75)
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_j31oi"]
 size = Vector3(4, 2, 6)
@@ -79,6 +86,18 @@ material = SubResource("StandardMaterial3D_r72yb")
 unique_name_in_owner = true
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.015, 4.2)
 
+[node name="Hitbox" type="Area3D" parent="tank/Turret" index="1" node_paths=PackedStringArray("parent_tank", "parent_component")]
+collision_layer = 0
+collision_mask = 4
+script = ExtResource("3_lj6hj")
+parent_tank = NodePath("../../..")
+parent_component = NodePath("..")
+metadata/_custom_type_script = "uid://ce4xbjidibl23"
+
+[node name="Turret" type="CollisionShape3D" parent="tank/Turret/Hitbox"]
+transform = Transform3D(1.1, 0, 0, 0, 1.1, 0, 0, 0, 1.1, 0, 2, -0.75)
+shape = SubResource("BoxShape3D_1ixom")
+
 [node name="GlobalRotation" type="Node3D" parent="tank/Main" index="0"]
 unique_name_in_owner = true
 top_level = true
@@ -98,6 +117,18 @@ script = ExtResource("3_ikjma")
 transform = Transform3D(1, -8.74228e-08, 8.74228e-08, 8.74228e-08, -4.37114e-08, -1, 8.74228e-08, 1, -4.37114e-08, 0, 0, 0)
 visible = false
 mesh = SubResource("PrismMesh_xn72j")
+
+[node name="Hitbox" type="Area3D" parent="tank/Main" index="2" node_paths=PackedStringArray("parent_tank", "parent_component")]
+collision_layer = 0
+collision_mask = 4
+script = ExtResource("3_lj6hj")
+parent_tank = NodePath("../../..")
+parent_component = NodePath("..")
+metadata/_custom_type_script = "uid://ce4xbjidibl23"
+
+[node name="Body" type="CollisionShape3D" parent="tank/Main/Hitbox"]
+transform = Transform3D(1.1, 0, 0, 0, 1.1, 0, 0, 0, 1.1, 0.003, 0.75, 0)
+shape = SubResource("BoxShape3D_k4vtj")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
