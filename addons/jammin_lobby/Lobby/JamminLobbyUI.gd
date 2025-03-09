@@ -8,6 +8,7 @@ class_name JamminLobbyUI extends JamminLobby
 
 func _ready() -> void:
 	super()
+	%ExitGameButton.pressed.connect(_on_exit_game_pressed)
 	%CreateLobbyButton.pressed.connect(_on_create_lobby_pressed)
 	%LeaveLobbyButton.pressed.connect(_on_leave_lobby_pressed)
 	%Username.text_changed.connect(_on_username_changed)
@@ -45,6 +46,12 @@ func _ready() -> void:
 	})
 	
 	update_lobby_ui()
+
+func _on_exit_game_pressed() -> void:
+	# Leave the lobby
+	Lobby.leave()
+	# exit the whole game
+	get_tree().quit()
 
 func _on_create_lobby_pressed() -> void:
 	Lobby.start_hosting()
