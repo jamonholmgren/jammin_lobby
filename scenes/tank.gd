@@ -15,6 +15,8 @@ static var me: Tank
 @export var target_position: Vector3 = Vector3.ZERO
 @export var health: int = 50
 
+var can_fire = true
+
 const MAX_STEER = 0.9
 const ENGINE_POWER = 4000
 const ROTATION_SPEED = 3.0  # Adjust for smoother or snappier rotation
@@ -65,7 +67,7 @@ func _input(event: InputEvent) -> void:
 		# Check if it's still in the screen or not
 		cam_tilt.rotation.x = clamp(cam_tilt.rotation.x, -1.5, 1.5)
 		
-	if event.is_action_pressed("fire"): fire()
+	if event.is_action_pressed("fire") and can_fire: fire()
 
 # Firing weapon
 func fire() -> void:
@@ -75,6 +77,9 @@ func fire() -> void:
 
 	# Apply a force to the tank to knock it back
 	apply_central_impulse(-bullet_spawn.global_transform.basis.z * bullet_speed * 50.0)
+	can_fire = false
+	await Lobby.wait(2.0)
+	can_fire = true
 
 @rpc("reliable", "any_peer", "call_local")
 func spawn_bullet(start_transform: Transform3D, start_velo: Vector3, bullet_name: String) -> void:

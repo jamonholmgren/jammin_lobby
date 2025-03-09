@@ -41,7 +41,7 @@ func spawn_explosion(location: Vector3, other_body_path: NodePath) -> void:
 
 	# Apply knockback to the other body if it's a RigidBody3D and we are the authority
 	if other_body is RigidBody3D and other_body.is_multiplayer_authority():
-		other_body.apply_central_impulse(global_transform.basis.z * linear_velocity.length() * 10000.0)
+		other_body.apply_central_impulse(global_transform.basis.z * linear_velocity.length() * 1000.0)
 
 	# play audio
 	Game.play_audio_3d(load("res://assets/impact.mp3"), location)
