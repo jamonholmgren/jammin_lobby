@@ -1,7 +1,8 @@
-[gd_scene load_steps=18 format=3 uid="uid://d3pjxi6563ipv"]
+[gd_scene load_steps=19 format=3 uid="uid://d3pjxi6563ipv"]
 
 [ext_resource type="Shader" uid="uid://sdxnw5vvlhl4" path="res://scenes/dome.gdshader" id="1_w8frs"]
 [ext_resource type="Script" uid="uid://dkgm43rno2pp2" path="res://scenes/spawn_point.gd" id="2_a7mro"]
+[ext_resource type="Script" uid="uid://b4km7cmcybydd" path="res://scenes/tracks.gd" id="2_ppgk2"]
 [ext_resource type="PackedScene" uid="uid://dokfft6qx37qt" path="res://scenes/smoke.tscn" id="2_w7c3h"]
 [ext_resource type="Script" uid="uid://ck0y2wef13yir" path="res://pathcamera.gd" id="4_mx8sn"]
 
@@ -121,9 +122,10 @@ shadow_enabled = true
 [node name="Obstacles" type="Node3D" parent="."]
 
 [node name="Floor" type="CSGBox3D" parent="Obstacles"]
+unique_name_in_owner = true
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
 use_collision = true
-size = Vector3(350, 1, 350)
+size = Vector3(200, 1, 200)
 material = SubResource("StandardMaterial3D_0tuir")
 
 [node name="Dome" type="MeshInstance3D" parent="Obstacles"]
@@ -237,6 +239,9 @@ transform = Transform3D(-1, 0, 8.74228e-08, 0, 1, 0, -8.74228e-08, 0, -1, -40, 3
 use_collision = true
 size = Vector3(6, 6, 48)
 material = SubResource("StandardMaterial3D_w8frs")
+
+[node name="Tracks" type="Node" parent="."]
+script = ExtResource("2_ppgk2")
 
 [node name="Tanks" type="Node3D" parent="."]
 unique_name_in_owner = true

@@ -16,6 +16,7 @@ static var me: Tank
 @export var health: int = 50
 
 var can_fire = true
+var last_track_pos = Vector3.ZERO
 
 const MAX_STEER = 0.9
 const ENGINE_POWER = 4000
@@ -29,6 +30,16 @@ func _physics_process(delta: float) -> void:
 	cam_pan.global_transform.basis = cam_global.global_transform.basis
 	rotate_toward_target(delta)
 	%EngineAudio.pitch_scale = (linear_velocity.length() / 100.0) + 0.5
+
+	# Add track marks if moving
+	if linear_velocity.length() > 1.0 and is_instance_valid(Tracks.instance):
+		# Get tank wheel positions
+		var wheel_positions = []
+		for wheel in [$VehicleWheel3D, $VehicleWheel3D2, $VehicleWheel3D3, $VehicleWheel3D4]:
+			wheel_positions.append(wheel.global_position)
+			
+		# Update track marks
+		last_track_pos = Tracks.instance.add_track_marks(global_position, wheel_positions, last_track_pos)
 
 	# Only the host for this tank can move it, and only if the menu is not visible
 	if Lobby.id() != get_multiplayer_authority(): return
