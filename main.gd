@@ -41,6 +41,8 @@ func start_game() -> void:
 
 @rpc("reliable", "any_peer", "call_local")
 func spawn_tank_random() -> void:
+	if not Lobby.i_am_host(): return
+
 	# Who's asking?
 	var sender_id = Lobby.sender_id()
 
@@ -71,13 +73,13 @@ func spawn_tank_at(spawn_point_path: NodePath, sender_id: int) -> void:
 		tank = tank_root.get_node(tank_name)
 	else:
 		tank = preload("res://scenes/tank.tscn").instantiate()
-	
+		tank.name = tank_name
+		tank_root.add_child(tank)
+
 	# Spawn the tank
-	tank.name = tank_name
-	if not tank.get_parent(): tank_root.add_child(tank)
 	tank.position = spawn_point.position
 	tank.rotation = spawn_point.rotation
-	tank.set_multiplayer_authority(Lobby.sender_id())
+	tank.set_multiplayer_authority(sender_id)
 
 	# If it's my tank, set my camera to its camera
 	if sender_id == Lobby.id(): tank.get_node("%TankCamera").make_current()
