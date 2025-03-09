@@ -67,7 +67,7 @@ func spawn_tank_at(spawn_point_path: NodePath, sender_id: int) -> void:
 
 	# Is the tank already in the scene?
 	var tank: Node3D = null
-	if tank_root.get_node(tank_name):
+	if tank_root.has_node(tank_name):
 		tank = tank_root.get_node(tank_name)
 	else:
 		tank = preload("res://scenes/tank.tscn").instantiate()
@@ -80,4 +80,4 @@ func spawn_tank_at(spawn_point_path: NodePath, sender_id: int) -> void:
 	tank.set_multiplayer_authority(Lobby.sender_id())
 
 	# If it's my tank, set my camera to its camera
-	if Lobby.sender_id() == Lobby.id(): tank.get_node("%TankCamera").make_current()
+	if sender_id == Lobby.id(): tank.get_node("%TankCamera").make_current()
