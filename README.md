@@ -9,6 +9,16 @@ This is the plugin for you!
 > [!CAUTION]
 > This is a work in progress! I hope to have it stable by mid-2025.
 
+## Demo
+
+This repo has a demo game called "Attack 3D" that you can play with your friends!
+
+There's a web version here that doesn't actually allow you to make lobbies, but you can still see the UI: [https://attack3d.jammin.games/](https://attack3d.jammin.games/)
+
+_(Eventually, I'd like to make JamminLobby work with web browsers, but that's a ways off.)_
+
+And if you clone down this repo and run it in Godot 4.4+, you can play with others in the same LAN (or forward a port).
+
 ## Features
 
 - Very simple to set up
