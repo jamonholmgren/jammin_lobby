@@ -1,34 +1,43 @@
-class_name NetworkUtils
+class_name NetworkUtils extends Node
+
+@onready var http = HTTPRequest.new()
 
 # Some network utilities
 #
-# NetworkUtils.get_local_ipv4_addresses()
+# get_local_ipv4_addresses()
 #   Returns an array of local IPv4 addresses
 #
-# NetworkUtils.get_external_ip()
-#   Returns the external IP address by pinging api.ipify.org
+# get_external_ip()
+#   Returns a Result object with the external IP address
 #
-# NetworkUtils.is_good_address(address: String) -> bool
+# get_router_ip()
+#   Returns a Result object with the router IP address
+#
+# is_valid_ipv4(address: String) -> bool
 #   Returns true if the address is a good address
 
+func _ready():
+	add_child(http)
+
 # Network utilities
-static func get_local_ipv4_addresses() -> Array[String]:
+func get_local_ipv4_addresses() -> Array[String]:
 	var ipv4_addresses: Array[String] = []
 	for address in IP.get_local_addresses():
-		if not is_good_address(address): continue
+		if not is_valid_ipv4(address): continue
 		ipv4_addresses.append(address)
 	return ipv4_addresses
 
-static func get_external_ip() -> Array:
-	var http = HTTPRequest.new()
-	Engine.get_main_loop().root.add_child(http)
+# Returns a Result object with the external IP address if successful
+func get_external_ip() -> Result:
 	http.request("https://api.ipify.org")
+	
 	var result = await http.request_completed
-	Engine.get_main_loop().root.remove_child(http)
-	http.queue_free()
+	
 	var wan_ip = result[3].get_string_from_utf8()
-	if not is_good_address(wan_ip): return [ERR_CANT_RESOLVE, ""]
-	return [OK, wan_ip]
+
+	if not is_valid_ipv4(wan_ip): return Result.err(ERR_CANT_RESOLVE)
+	
+	return Result.ok(wan_ip)
 
 # Tries to get the router IP address (kinda slow)
 # Tested on:
@@ -36,28 +45,43 @@ static func get_external_ip() -> Array:
 #   - ❓ Windows 10
 #   - ❓ Windows 11
 #   - ❓ Linux
-static func get_router_ip():
+func get_router_ip() -> Result:
 	var output := []
-	var exit_code: int
 	
 	var router_ip: String = ""
 
 	match OS.get_name():
 		"Windows":
-			exit_code = OS.execute("ipconfig", [], output)
+			OS.execute("ipconfig", [], output)
 			for line in output[0].split("\n"): if "Default Gateway" in line: router_ip = line.split(":")[-1].strip_edges()
 		"macOS":
-			exit_code = OS.execute("netstat", ["-nr"], output)
+			OS.execute("netstat", ["-nr"], output)
 			for line in output[0].split("\n"): if "default" in line: router_ip = line.split()[1]
 		"Linux":
-			exit_code = OS.execute("ip", ["route", "show", "default"], output)
+			OS.execute("ip", ["route", "show", "default"], output)
 			if output[0]: router_ip = output[0].split()[2]
 
-	if is_good_address(router_ip): return router_ip
-	return null
+	if is_valid_ipv4(router_ip) and not router_ip.begins_with("127."): return Result.ok(router_ip)
+	return Result.err(ERR_CANT_RESOLVE)
 
-static func is_good_address(address: String) -> bool:
+func is_valid_ipv4(address: String) -> bool:
 	if not address.is_valid_ip_address(): return false
-	if address.begins_with("127."): return false
 	if address.split(".").size() != 4: return false
 	return true
+
+# Result class for handling success/failure responses
+class Result:
+	var success: bool
+	var value: Variant
+	var error_code: int = OK
+
+	func _init(p_success: bool, p_value = null, p_error_code: int = OK):
+		success = p_success
+		value = p_value
+		error_code = p_error_code
+
+	static func ok(value) -> Result:
+		return Result.new(true, value)
+		
+	static func err(error_code: int = ERR_CANT_RESOLVE) -> Result:
+		return Result.new(false, null, error_code)

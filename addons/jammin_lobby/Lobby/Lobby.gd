@@ -39,26 +39,15 @@ signal chat_messages_updated()
 # Signals for the host to trigger via 
 signal game_event(command: String)
 
-# Constants **********************************************************
+# Configuration and subsystems *************************************************
 
 static var config: JamminLobby = null
 
-# Lobby chat messages
-var chat_messages: Array[Dictionary] = []
-
-# Optional save slot to use for the local player, to allow multiple users.
-var save_slot: int = 1
-
-# Game name
-var game_name: String = ProjectSettings.get_setting("application/config/name")
-
-# Game version
-var game_version: String = ProjectSettings.get_setting("application/config/version")
+var discovery_server: PacketPeerUDP
+@onready var request: JamminRequest = JamminRequest.new()
+@onready var net: NetworkUtils = NetworkUtils.new()
 
 # State *************************************************************************
-
-var discovery_server: PacketPeerUDP
-var request: JamminRequest
 
 enum Status { Offline, Disconnected, Connecting, Connected, Hosting, Unknown }
 
@@ -70,8 +59,21 @@ const DEFAULT_PLAYER_DATA: Dictionary = {
 	"username": "",
 	"in_lobby": false,
 	"host": false,
+	"ready": false,
 	"ping": 0
 }
+
+# Game name
+var game_name: String = ProjectSettings.get_setting("application/config/name")
+
+# Game version
+var game_version: String = ProjectSettings.get_setting("application/config/version")
+
+# Lobby chat messages
+var chat_messages: Array[Dictionary] = []
+
+# Optional save slot to use for the local player, to allow multiple users.
+var save_slot: int = 1
 
 # This is a dictionary of all players in the lobby
 # The key is the player ID, and the value is a dictionary of player data
@@ -83,8 +85,13 @@ var _host_players: Dictionary = {}
 # Don't update this directly; use `Lobby.update_me({ ... })` instead
 var me: Dictionary
 
+# Lobbies we've discovered on the local network
 var found_lobbies: Dictionary = {}
+
+# Whether we're currently refreshing the list of lobbies
 var refreshing := false
+
+# Ping start time, for measuring ping
 var ping_start: int = 0
 
 # Lifecycle ***********************************************************************
@@ -96,6 +103,7 @@ func _ready() -> void:
 
 	setup_multiplayer()
 	setup_request()
+	setup_network_utils()
 
 func restore() -> void:
 	Options.restore()
@@ -108,6 +116,7 @@ func restore() -> void:
 		# Reset some values that shouldn't be persisted
 		me.merge({ "ready": false, "in_lobby": false, "host": false }, true)
 		i_restored.emit(me)
+
 func _process(_delta) -> void:
 	if not discovery_server.is_bound(): set_process(false); return
 	check_for_clients_discovery()
@@ -144,9 +153,13 @@ func setup_multiplayer():
 	discovery_server = PacketPeerUDP.new()
 
 func setup_request():
-	request = JamminRequest.new()
 	request.name = "Request"
 	add_child(request)
+
+func setup_network_utils():
+	net = NetworkUtils.new()
+	net.name = "NetworkUtils"
+	add_child(net)
 
 func setup_game_peer() -> ENetMultiplayerPeer:
 	# Game peer setup
@@ -288,7 +301,7 @@ func server_disconnect_peer(pid: int, reason: String = "") -> void:
 	update_players_from_host.rpc(_host_players)
 
 # Finds local ip addresses to tell clients to try to connect to if discovery fails
-func get_ips() -> Array: return NetworkUtils.get_local_ipv4_addresses()
+func get_ips() -> Array: return net.get_local_ipv4_addresses()
 
 # Discovery server ***********************************************************************
 
@@ -686,3 +699,10 @@ func _on_any_peer_connected(pid: int):
 # - and remove it from the host players list
 func _on_any_peer_disconnected(pid: int):
 	host_remove_by_pid(pid)
+
+# Pass-through methods ***********************************************************
+
+func get_local_ipv4_addresses() -> Array[String]: return net.get_local_ipv4_addresses()
+func get_external_ip() -> NetworkUtils.Result: return await net.get_external_ip()
+func get_router_ip() -> NetworkUtils.Result: return net.get_router_ip()
+func is_good_address(address: String) -> bool: return net.is_good_address(address)

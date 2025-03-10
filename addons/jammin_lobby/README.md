@@ -109,12 +109,12 @@ JamminLobby provides a robust options management system that is persisted to a f
 
 ```gdscript
 # Global lobby options
-Lobby.options.set("music_volume", 0.5)
-Lobby.options.get("music_volume")
+Options.set("music_volume", 0.5)
+Options.get("music_volume")
 
 # Per-player options
-Lobby.me.options.set("controls_inverted", true)
-Lobby.me.options.get("controls_inverted")
+Lobby.update_me({ "controls_inverted": true })
+Lobby.me.get("controls_inverted", false)
 ```
 
 ### Request/Response System

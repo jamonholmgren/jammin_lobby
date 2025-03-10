@@ -124,8 +124,11 @@ func set_control_value(value: Variant):
 	assert(control != null, "Control is null")
 	assert(control_value_property != "", "Control value property is empty")
 	if control is ItemList: return _set_item_list_value(value)
-	if _get_control_value() == value: return
+	
 	value = _convert_value_type(value)
+	
+	if _get_control_value() == value: return
+	
 	_set_control_value(value)
 
 func _get_control_value() -> Variant:
@@ -146,12 +149,12 @@ func _set_item_list_value(value: String):
 	control.selected = control.get_item_index(value)
 
 func _convert_value_type(value: Variant) -> Variant:
-	if value == null: return default_value
-		
+	if value == null: value = default_value
+	
 	match data_type:
 		DataTypes.INT: return int(value)
 		DataTypes.FLOAT: return float(value)
-		DataTypes.BOOL: return bool(value)
+		DataTypes.BOOL: return !!(value)
 		DataTypes.STRING: return str(value)
 		DataTypes.COLOR:
 			if value is String: return Color(value)
