@@ -15,6 +15,9 @@ height = 1.55885
 collision_layer = 4
 collision_mask = 3
 mass = 0.005
+continuous_cd = true
+contact_monitor = true
+max_contacts_reported = 1
 script = ExtResource("1_mkf8s")
 
 [node name="CSGSphere3D2" type="CSGSphere3D" parent="."]

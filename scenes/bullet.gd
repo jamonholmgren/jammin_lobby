@@ -5,7 +5,6 @@ extends RigidBody3D
 var explode_timer: Timer
 
 func _ready() -> void:
-	max_contacts_reported = 1
 	explode_timer = Timer.new()
 	explode_timer.wait_time = 10.0
 	explode_timer.one_shot = true
@@ -47,8 +46,17 @@ func spawn_explosion(location: Vector3, other_body_path: NodePath) -> void:
 	Game.play_audio_3d(load("res://assets/impact.mp3"), location)
 	queue_free()
 
-	# draw a scorch mark on the texture we hit
-	var texture: ImageTexture = other_body.texture
-	var loc: Vector2i = Game.world_to_texture_coords(texture, other_body.global_transform.origin)
-	var locations: Array[Vector2i] = [loc]
-	Game.draw_on_texture(texture, locations, Color.RED, 10, 10, 0.0, 0.0)
+	# draw a scorch mark on the floor if we hit the floor
+	if other_body.name == "Floor":
+		var fs: float = Tracks.instance.floor_size
+		var sf: float = Tracks.instance.scale_factor
+		var tex_x: int = int((fs/2 - global_transform.origin.z) * sf)
+		var tex_y: int = int((fs/2 - global_transform.origin.x) * sf)
+		
+		# randomly add 20 scorch marks around the impact point
+		var locations: Array[Vector2i] = []
+		for i in range(30):
+			locations.append(Vector2i(tex_x + randi_range(-10, 10), tex_y + randi_range(-10, 10)))
+		
+		Game.draw_on_texture(Tracks.instance.floor_texture, locations, Color(0.1, 0.1, 0.1, 1.0), 2, randi_range(1, 3), randf_range(0.0, TAU), randf_range(0.0, 0.1))
+	

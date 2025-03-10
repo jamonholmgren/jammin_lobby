@@ -4,6 +4,10 @@ var floor_image_setup: bool = false
 var original_texture: Texture2D = null
 var floor_image: Image = null
 var floor_texture: ImageTexture = null  # This should be the ImageTexture, not the NoiseTexture2D
+var floor_size: float
+var tex_size: int
+var scale_factor: float
+
 @export var track_spacing: float = 0.5 # Minimum distance between track marks
 
 # Singleton pattern
@@ -36,6 +40,12 @@ func setup_floor() -> void:
 	floor_texture = ImageTexture.create_from_image(floor_image)
 	# Apply the new texture to the floor
 	floor_node.material.albedo_texture = floor_texture
+
+	# Convert world position to texture coordinates
+	# Assuming the floor is centered at origin and has size from level.tscn
+	floor_size = 200.0
+	tex_size = floor_image.get_width()
+	scale_factor = tex_size / floor_size
 	
 	floor_image_setup = true
 	# print("Track system initialized!")
@@ -53,17 +63,14 @@ func add_track_marks(tank: Tank) -> void:
 	# Skip if tank hasn't moved enough since last tracks
 	if last_track_pos.distance_to(tank_position) < track_spacing: return
 		
-	# Convert world position to texture coordinates
-	# Assuming the floor is centered at origin and has size from level.tscn
-	var floor_size: float = 200.0
-	var tex_size: int = floor_image.get_width()
-	var scale_factor: float = tex_size / floor_size
+	
 	
 	# Draw tracks at each wheel position
 	var track_locations: Array[Vector2i] = []
 	for wheel_pos in wheel_positions:
-		var loc: Vector2i = Game.world_to_texture_coords(floor_texture, wheel_pos)
-		track_locations.append(loc)
+		var tex_x: int = int((floor_size/2 - wheel_pos.z) * scale_factor)
+		var tex_y: int = int((floor_size/2 - wheel_pos.x) * scale_factor)
+		track_locations.append(Vector2i(tex_x, tex_y))
 	
 	# Calculate the rotation of the tank
 	var tank_rotation: float = atan2(tank.global_transform.basis.z.x, tank.global_transform.basis.z.z)

@@ -46,11 +46,6 @@ func sees(from: Vector3, to: Vector3) -> bool:
 	var result: Dictionary = space_state.intersect_ray(ray_params)
 	return result.is_empty()
 
-func world_to_texture_coords(texture: ImageTexture, world_coords: Vector3) -> Vector2i:
-	var floor_size: float = 200.0
-	var tex_x: int = int((floor_size/2 - wheel_pos.z) * scale_factor)
-	var tex_y: int = int((floor_size/2 - wheel_pos.x) * scale_factor)
-
 # Draws points on a texture with optional rotation and size
 func draw_on_texture(texture: ImageTexture, locations: Array[Vector2i], color: Color, size_x: int = 1, size_y: int = 1, rotation: float = 0.0, color_variance: float = 0.0) -> void:
 	var image: Image = texture.get_image()
