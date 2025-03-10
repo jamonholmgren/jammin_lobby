@@ -42,7 +42,7 @@ func start_game() -> void:
 
 @rpc("reliable", "any_peer", "call_local")
 func spawn_tank_random() -> void:
-	if Lobby.offline() or not Lobby.i_am_host(): return
+	if Lobby.online() and not Lobby.i_am_host(): return
 
 	# Who's asking?
 	var sender_id = Lobby.sender_id()
