@@ -135,12 +135,13 @@ func _get_item_list_value() -> String:
 	if selected_items.size() == 0: return default_value
 	var item_index = selected_items[0]
 	var item_text = control.get_item_text(item_index)
-	return item_text
+	return item_text.split(" (")[0]
 
 func _set_item_list_value(value: String):
 	if _get_item_list_value() == value: return
 	for i in control.get_item_count():
-		if control.get_item_text(i) == value:
+		var item_text = control.get_item_text(i).split(" (")[0]
+		if item_text == value:
 			control.select(i)
 			break
 
