@@ -23,60 +23,54 @@ enum DataTypes { STRING, INT, FLOAT, BOOL, COLOR }
 # What child control to bind to (if null, will use self)
 @export var control: Control
 
-# What property to update on the control
-@export var control_value_property: String = ""
-
-# What signal to connect to for control changes
-@export var control_signal: String = ""
-
 func _ready():
 	# Use self as the control if none specified
 	if control == null: control = self
-		
-	# Detect appropriate property/signal if not specified
-	_setup_auto_property_and_signal()
-	
+
 	# Connect signals to handle updates in both directions
 	_connect_signals()
 	
-	# Initialize control with saved value, but do it in the next frame
+	# Initialize control with saved value, but do it after a bit
 	_load_saved_value.call_deferred()
 
-func _setup_auto_property_and_signal():
-	# Auto-detect property and signal if not specified
-	if control_value_property == "":
-		if control is TextEdit: control_value_property = "text"
-		elif control is LineEdit: control_value_property = "text"
-		elif control is CheckBox: control_value_property = "button_pressed"
-		elif control is CheckButton: control_value_property = "button_pressed"
-		elif control is SpinBox: control_value_property = "value"
-		elif control is Slider: control_value_property = "value"
-		elif control is OptionButton: control_value_property = "selected"
-		elif control is ItemList: control_value_property = "selected_items"
-		elif control is ColorPicker: control_value_property = "color"
-		elif control is ColorPickerButton: control_value_property = "color"
-		else:
-			push_error("Unsupported control type: ", control.get_class())
+func control_value_property() -> String:
+	# Auto-detect property and signal
+	if control is TextEdit: return "text"
+	elif control is LineEdit: return "text"
+	elif control is CheckBox: return "button_pressed"
+	elif control is CheckButton: return "button_pressed"
+	elif control is SpinBox: return "value"
+	elif control is Slider: return "value"
+	elif control is OptionButton: return "selected"
+	elif control is ItemList: return "selected_items"
+	elif control is ColorPicker: return "color"
+	elif control is ColorPickerButton: return "color"
+	else:
+		push_error("Unsupported control type: ", control.get_class())
+		return "value"
 
-		
-	if control_signal == "":
-		if control is TextEdit: control_signal = "text_changed"
-		elif control is LineEdit: control_signal = "text_changed"
-		elif control is CheckBox: control_signal = "toggled"
-		elif control is CheckButton: control_signal = "toggled"
-		elif control is Button: control_signal = "pressed"
-		elif control is SpinBox: control_signal = "value_changed"
-		elif control is Slider: control_signal = "value_changed"
-		elif control is OptionButton: control_signal = "item_selected"
-		elif control is ItemList: control_signal = "item_selected"
-		elif control is ColorPicker: control_signal = "color_changed"
-		elif control is ColorPickerButton: control_signal = "color_changed"
-		else:
-			push_error("Unsupported control type: ", control.get_class())
+func control_signal() -> String:
+	if control is TextEdit: return "text_changed"
+	elif control is LineEdit: return "text_changed"
+	elif control is CheckBox: return "toggled"
+	elif control is CheckButton: return "toggled"
+	elif control is Button: return "pressed"
+	elif control is SpinBox: return "value_changed"
+	elif control is Slider: return "value_changed"
+	elif control is OptionButton: return "item_selected"
+	elif control is ItemList: return "item_selected"
+	elif control is ColorPicker: return "color_changed"
+	elif control is ColorPickerButton: return "color_changed"
+	else:
+		push_error("Unsupported control type: ", control.get_class())
+		return "value_changed"
 
 func _connect_signals():
-	if control_signal and control.has_signal(control_signal):
-		control.connect(control_signal, _on_control_changed)
+	var signal_name = control_signal()
+	if signal_name and control.has_signal(signal_name):
+		control.connect(signal_name, _on_control_changed)
+	else:
+		push_error("Control signal not found: ", signal_name)
 	
 	if not is_player_specific:
 		Options.updated.connect(_on_option_changed)
@@ -114,8 +108,6 @@ func _on_player_changed(player: Dictionary):
 
 func set_control_value(value: Variant):
 	assert(control != null, "Control is null")
-	if control is ItemList: return _set_item_list_value(value)
-	assert(control_value_property != "", "Control value property is empty")
 	
 	value = _convert_value_type(value)
 
@@ -129,8 +121,7 @@ func set_control_value(value: Variant):
 func _get_control_value() -> Variant:
 	assert(control != null, "Control is null")
 	if control is ItemList: return _get_item_list_value()
-	assert(control_value_property != "", "Control value property is empty")
-	return _convert_value_type(control.get(control_value_property))
+	return _convert_value_type(control.get(control_value_property()))
 
 func _get_item_list_value() -> String:
 	var selected_items: PackedInt32Array = control.get_selected_items()
@@ -140,6 +131,7 @@ func _get_item_list_value() -> String:
 	return item_text.split(" (")[0]
 
 func _set_item_list_value(value: String):
+	print(name + " set_item_list_value: ", value)
 	if _get_item_list_value() == value: return
 	for i in control.get_item_count():
 		var item_text = control.get_item_text(i).split(" (")[0]
@@ -161,7 +153,7 @@ func _convert_value_type(value: Variant) -> Variant:
 	return value
 
 func _set_control_value(value: Variant):
-	if control_value_property != "": control.set(control_value_property, value); return
+	# if control_value_property != "": control.set(control_value_property, value); return
 
 	# Handle specific control types
 	if control is ItemList: _set_item_list_value(value); return
@@ -176,3 +168,9 @@ func _set_control_value(value: Variant):
 	if control is ColorPickerButton: control.color = value; return
 
 	push_error("Unsupported control type: ", control.get_class())
+
+# This sets up a callback and then also calls it with the
+# current value of the control, to do initial setup.
+func on_change(callback: Callable):
+	value_changed.connect(callback)
+	callback.call_deferred(_get_control_value())
