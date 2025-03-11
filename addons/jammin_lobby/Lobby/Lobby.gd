@@ -77,7 +77,7 @@ var save_slot: int = 1
 
 # This is a dictionary of all players in the lobby
 # The key is the player ID, and the value is a dictionary of player data
-# You can access player data with `Lobby.get_player(player_id)`
+# You can access player data with `Lobby.players.get(player_id)`
 var players: Dictionary = {}
 var _host_players: Dictionary = {}
 
@@ -208,7 +208,7 @@ func start_hosting(settings: Dictionary = {}):
 func stop_hosting(msg: String = "Game ended by host"):
 	lm("stop_hosting ", msg)
 	stop_discovery()
-	server_disconnect_all_peers(msg)
+	_server_disconnect_all_peers(msg)
 	stop_server("Game ended by host; " + msg)	
 
 func close_game_peer():
@@ -288,11 +288,11 @@ func stop_server(message: String):
 	i_left_lobby.emit(message)
 	hosting_stopped.emit(message)
 
-func server_disconnect_all_peers(reason: String = ""):
+func _server_disconnect_all_peers(reason: String = ""):
 	if not i_am_host(): return
-	for pid in multiplayer.get_peers(): server_disconnect_peer(pid, reason)
+	for pid in multiplayer.get_peers(): _server_disconnect_peer(pid, reason)
 
-func server_disconnect_peer(pid: int, reason: String = "") -> void:
+func _server_disconnect_peer(pid: int, reason: String = "") -> void:
 	if not i_am_host(): return
 	if pid == host_id(): return # can't disconnect the server; use stop_server instead
 	if not pid_in_lobby(pid): return
@@ -558,6 +558,9 @@ func player_ids() -> Array[int]:
 func player_count() -> int:
 	if not online(): return 0
 	return player_ids().size()
+
+func player_id_valid(pid: int) -> bool:
+	return player_ids().has(pid)
 
 # Can't type the return type since it can return null
 func find_by_pid(pid: int): # -> Dictionary | null

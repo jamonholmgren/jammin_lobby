@@ -3,7 +3,7 @@ class_name JamminControl extends Control
 # automatically save its value to the Options object
 # and retrieve with Options.get_option(key, default_value) or Lobby.me.get(key, default_value).
 
-signal value_changed(key: String, value: Variant)
+signal value_changed(value: Variant)
 
 # What option name this control should be bound to
 @export var option_name: String
@@ -29,34 +29,6 @@ enum DataTypes { STRING, INT, FLOAT, BOOL, COLOR }
 # What signal to connect to for control changes
 @export var control_signal: String = ""
 
-# Common control signals and properties
-const AUTO_SIGNALS = {
-	"TextEdit": "text_changed",
-	"LineEdit": "text_changed",
-	"CheckBox": "toggled",
-	"CheckButton": "toggled",
-	"Button": "pressed",
-	"SpinBox": "value_changed",
-	"Slider": "value_changed",
-	"OptionButton": "item_selected",
-	"ItemList": "item_selected",
-	"ColorPicker": "color_changed",
-	"ColorPickerButton": "color_changed"
-}
-
-const AUTO_PROPERTIES = {
-	"TextEdit": "text",
-	"LineEdit": "text",
-	"CheckBox": "button_pressed",
-	"CheckButton": "button_pressed",
-	"SpinBox": "value",
-	"Slider": "value",
-	"OptionButton": "selected",
-	"ItemList": "selected_items",
-	"ColorPicker": "color",
-	"ColorPickerButton": "color"
-}
-
 func _ready():
 	# Use self as the control if none specified
 	if control == null: control = self
@@ -72,13 +44,35 @@ func _ready():
 
 func _setup_auto_property_and_signal():
 	# Auto-detect property and signal if not specified
-	var control_class = control.get_class()
-	
 	if control_value_property == "":
-		control_value_property = AUTO_PROPERTIES.get(control_class, "")
+		if control is TextEdit: control_value_property = "text"
+		elif control is LineEdit: control_value_property = "text"
+		elif control is CheckBox: control_value_property = "button_pressed"
+		elif control is CheckButton: control_value_property = "button_pressed"
+		elif control is SpinBox: control_value_property = "value"
+		elif control is Slider: control_value_property = "value"
+		elif control is OptionButton: control_value_property = "selected"
+		elif control is ItemList: control_value_property = "selected_items"
+		elif control is ColorPicker: control_value_property = "color"
+		elif control is ColorPickerButton: control_value_property = "color"
+		else:
+			push_error("Unsupported control type: ", control.get_class())
+
 		
 	if control_signal == "":
-		control_signal = AUTO_SIGNALS.get(control_class, "")
+		if control is TextEdit: control_signal = "text_changed"
+		elif control is LineEdit: control_signal = "text_changed"
+		elif control is CheckBox: control_signal = "toggled"
+		elif control is CheckButton: control_signal = "toggled"
+		elif control is Button: control_signal = "pressed"
+		elif control is SpinBox: control_signal = "value_changed"
+		elif control is Slider: control_signal = "value_changed"
+		elif control is OptionButton: control_signal = "item_selected"
+		elif control is ItemList: control_signal = "item_selected"
+		elif control is ColorPicker: control_signal = "color_changed"
+		elif control is ColorPickerButton: control_signal = "color_changed"
+		else:
+			push_error("Unsupported control type: ", control.get_class())
 
 func _connect_signals():
 	if control_signal and control.has_signal(control_signal):
@@ -109,7 +103,7 @@ func _save_value_to_storage(key: String, value: Variant):
 func _on_control_changed(arg1 = null, arg2 = null, arg3 = null):
 	# Handle different signal patterns
 	var value = _get_control_value()
-	value_changed.emit(option_name, value)
+	value_changed.emit(value)
 	_save_value_to_storage(option_name, value)
 
 func _on_option_changed(key: String, value: Variant):
@@ -120,20 +114,20 @@ func _on_player_changed(player: Dictionary):
 
 func set_control_value(value: Variant):
 	assert(control != null, "Control is null")
-	assert(control_value_property != "", "Control value property is empty")
 	if control is ItemList: return _set_item_list_value(value)
+	assert(control_value_property != "", "Control value property is empty")
 	
 	value = _convert_value_type(value)
 	
 	if _get_control_value() == value: return
 	
 	_set_control_value(value)
-	value_changed.emit(option_name, value)
+	value_changed.emit(value)
 
 func _get_control_value() -> Variant:
 	assert(control != null, "Control is null")
-	assert(control_value_property != "", "Control value property is empty")
 	if control is ItemList: return _get_item_list_value()
+	assert(control_value_property != "", "Control value property is empty")
 	return _convert_value_type(control.get(control_value_property))
 
 func _get_item_list_value() -> String:
@@ -145,7 +139,10 @@ func _get_item_list_value() -> String:
 
 func _set_item_list_value(value: String):
 	if _get_item_list_value() == value: return
-	control.selected = control.get_item_index(value)
+	for i in control.get_item_count():
+		if control.get_item_text(i) == value:
+			control.select(i)
+			break
 
 func _convert_value_type(value: Variant) -> Variant:
 	if value == null: value = default_value
