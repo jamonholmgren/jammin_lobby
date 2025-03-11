@@ -15,12 +15,14 @@ func _init(config: Dictionary = {}):
 	backup_file = config.get("backup_file", backup_file)
 	data = config.get("defaults", {})
 
-# You can get options with Options.get(k)
+# You can get options with Options.get_option(k, default_value)
 func _get(k: StringName) -> Variant:
 	return data.get(k, null)
 
 func _set(k: StringName, v: Variant):
-	if str(data.get(k)) == str(v): return true
+	var old_v = data.get(k, null)
+	if v is Dictionary and old_v is Dictionary and FileUtils.is_eq(old_v, v): return true
+	elif str(old_v) == str(v): return true
 	data[k] = v
 	autosave()
 	updated.emit(k, v)

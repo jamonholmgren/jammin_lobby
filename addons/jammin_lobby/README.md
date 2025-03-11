@@ -109,8 +109,8 @@ JamminLobby provides a robust options management system that is persisted to a f
 
 ```gdscript
 # Global lobby options
-Options.set("music_volume", 0.5)
-Options.get("music_volume")
+Options.set_option("music_volume", 0.5)
+Options.get_option("music_volume", 0.5) # default value of 0.5
 
 # Per-player options
 Lobby.update_me({ "controls_inverted": true })

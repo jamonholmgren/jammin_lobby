@@ -36,8 +36,8 @@ signal ping_updated(ping: int)
 # Signals for the chat messages
 signal chat_messages_updated()
 
-# Signals for the host to trigger via 
-signal game_event(command: String)
+# Signals for the host to trigger via .rpc()
+signal game_event(command: String, data: Dictionary)
 
 # Configuration and subsystems *************************************************
 
@@ -198,7 +198,6 @@ func configure(settings: Dictionary):
 	if settings.has("player_scene"): config.player_scene = settings.player_scene
 	if settings.has("autosave"): config.autosave = settings.autosave
 	if settings.has("save_slot"): save_slot = settings.save_slot
-	# if settings.has("proxy_url"): proxy.proxy_url = settings.proxy_url
 
 func start_hosting(settings: Dictionary = {}):
 	lm("start_hosting ", settings)
@@ -247,6 +246,8 @@ func update_me(changes: Dictionary):
 
 	me.merge(changes, true)
 	Options.set("player-" + str(save_slot), me)
+	# have to call manually because `me` is the same object, often, and won't get detected as changed
+	Options.autosave()
 	i_updated.emit(me)
 	sync_me_with_host()
 
@@ -364,7 +365,6 @@ func update_players_from_host(updated_players: Dictionary):
 		var is_new: bool = !players.has(pid)
 		var is_updated: bool = !is_new and players[pid].hash() != new_player.hash()
 		var is_me: bool = pid == id()
-		var is_host: bool = pid == host_id()
 		
 		# No change? skip
 		if not is_new and not is_updated: continue
@@ -376,8 +376,8 @@ func update_players_from_host(updated_players: Dictionary):
 		if is_new:
 			players[pid] = {}
 			players[pid].merge(new_player, true)
-			if is_me: i_joined_lobby.emit(me)
-			else: player_joined_lobby.emit(new_player)
+			if is_me: i_joined_lobby.emit(players[pid])
+			else: player_joined_lobby.emit(players[pid])
 		elif is_updated:
 			players[pid].merge(new_player, true)
 			if is_me: i_updated.emit(me)
@@ -491,7 +491,6 @@ func send_game_event(command: String, data: Dictionary = {}) -> void:
 # It's kind of an all-purpose communication signal.
 @rpc("authority", "reliable", "call_local")
 func _send_game_event(command: String, data: Dictionary = {}) -> void:
-	if not sender_id() > 0: return pe("send_game_event should be sent via .rpc()")
 	game_event.emit(command, data)
 
 # Chat methods *******************************************************************
@@ -506,11 +505,11 @@ func send_chat(message: String):
 func host_send_chat(message: String):
 	if not i_am_host(): return
 
-	var sender_id = sender_id()
-	if sender_id == 0: sender_id = id()
+	var sid = sender_id()
+	if sid == 0: sid = id()
 
 	# We are the host, so add the message to our list and broadcast the list to all clients
-	add_chat(message, sender_id)
+	add_chat(message, sid)
 
 	# Sort the chat messages by timestamp
 	chat_messages.sort_custom(func(a, b): return a.get("ts") < b.get("ts"))
@@ -607,6 +606,9 @@ func i_am_host() -> bool: return status() == Status.Hosting
 func is_client() -> bool: return status() == Status.Connected
 func is_authority(node: Node) -> bool: return online() and node.is_multiplayer_authority()
 func is_me(p: Dictionary) -> bool: return p and me.id == p.id
+
+func sender_is_host() -> bool: return sender_id() == host_id()
+func sender_is_me() -> bool: return sender_id() == id()
 
 func set_authority(node: Node, pid: int) -> void:
 	if not online(): return
@@ -706,3 +708,39 @@ func get_local_ipv4_addresses() -> Array[String]: return net.get_local_ipv4_addr
 func get_external_ip() -> NetworkUtils.Result: return await net.get_external_ip()
 func get_router_ip() -> NetworkUtils.Result: return net.get_router_ip()
 func is_good_address(address: String) -> bool: return net.is_good_address(address)
+
+var lobby_name: String:
+	get: return config.lobby_name
+	set(v): config.lobby_name = v
+
+var game_port: int:
+	get: return config.game_port
+	set(v): config.game_port = v
+
+var broadcast_port: int:
+	get: return config.broadcast_port
+	set(v): config.broadcast_port = v
+
+var response_port: int:
+	get: return config.response_port
+	set(v): config.response_port = v
+
+var max_players:
+	get: return config.max_players
+	set(v): config.max_players = v
+
+var connection_timeout: int:
+	get: return config.connection_timeout
+	set(v): config.connection_timeout = v
+
+var player_script: String:
+	get: return config.player_script
+	set(v): config.player_script = v
+
+var player_scene: String:
+	get: return config.player_scene
+	set(v): config.player_scene = v
+
+var autosave: bool:
+	get: return config.autosave
+	set(v): config.autosave = v

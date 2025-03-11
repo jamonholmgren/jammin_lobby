@@ -1,7 +1,7 @@
 class_name JamminControl extends Control
 # Attach this script to a control in your menu UI to
 # automatically save its value to the Options object
-# and retrieve with Options.get(key) or Lobby.me.get(key).
+# and retrieve with Options.get_option(key, default_value) or Lobby.me.get(key, default_value).
 
 signal value_changed(key: String, value: Variant)
 
@@ -81,8 +81,6 @@ func _setup_auto_property_and_signal():
 		control_signal = AUTO_SIGNALS.get(control_class, "")
 
 func _connect_signals():
-	value_changed.connect(_save_value_to_storage)
-	
 	if control_signal and control.has_signal(control_signal):
 		control.connect(control_signal, _on_control_changed)
 	
@@ -130,6 +128,7 @@ func set_control_value(value: Variant):
 	if _get_control_value() == value: return
 	
 	_set_control_value(value)
+	value_changed.emit(option_name, value)
 
 func _get_control_value() -> Variant:
 	assert(control != null, "Control is null")

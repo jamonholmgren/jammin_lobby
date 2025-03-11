@@ -7,13 +7,13 @@ func wait(time: float):
 	return Lobby.get_tree().create_timer(time).timeout
 
 func debounce_single_timer(c: Callable):
-	for t in get_children(): if t is Timer and t.is_connected("timeout", c): t.stop(); t.start(); return t
+	for t in get_children(): if t is Timer and t.is_connected("timeout", c): t.start(); return t
 	return null
 
 func debounce(ms: float, c: Callable) -> Signal:
 	# find the timer for this callback, if it exists already, and reset it
 	var t = debounce_single_timer(c)
-	if t: return t.timeout
+	if is_instance_valid(t): return t.timeout
 
 	# create a new timer for this callback
 	var timer = Timer.new()
@@ -22,7 +22,7 @@ func debounce(ms: float, c: Callable) -> Signal:
 	timer.one_shot = true
 	timer.timeout.connect(c)
 	# Kill the timer after it fires
-	timer.timeout.connect(func(): timer.queue_free())
+	timer.timeout.connect(func(): if is_instance_valid(timer): timer.queue_free())
 	timer.start()
 	return timer.timeout
 
