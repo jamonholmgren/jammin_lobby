@@ -30,14 +30,6 @@ func debounce(ms: float, c: Callable) -> Signal:
 func cs(o: Object, s: String, c: Callable) -> void:
 	if not o[s].is_connected(c): o[s].connect(c)
 
-var _options: JamminOptions = null
-func options_get(settings: Dictionary) -> JamminOptions:
-	if _options: return _options
-	_options = JamminOptions.new(settings)
-	add_child(_options)
-	if settings.get("restore", true): _options.restore()
-	return _options
-
 func is_property_exported(object: Object, property_name: String) -> bool:
 	for property in object.get_property_list():
 		if property["name"] == property_name:

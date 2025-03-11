@@ -39,8 +39,8 @@ func _ready():
 	# Connect signals to handle updates in both directions
 	_connect_signals()
 	
-	# Initialize control with saved value
-	_load_saved_value()
+	# Initialize control with saved value, but do it in the next frame
+	_load_saved_value.call_deferred()
 
 func _setup_auto_property_and_signal():
 	# Auto-detect property and signal if not specified
@@ -118,6 +118,8 @@ func set_control_value(value: Variant):
 	assert(control_value_property != "", "Control value property is empty")
 	
 	value = _convert_value_type(value)
+
+	print(name + " set_control_value: ", value)
 	
 	if _get_control_value() == value: return
 	
