@@ -131,6 +131,7 @@ func _get_item_list_value() -> String:
 	return item_text.split(" (")[0]
 
 func _set_item_list_value(value: String):
+	value = value.split(" (")[0] # Remove any parenthetical text
 	print(name + " set_item_list_value: ", value)
 	if _get_item_list_value() == value: return
 	for i in control.get_item_count():
@@ -153,7 +154,6 @@ func _convert_value_type(value: Variant) -> Variant:
 	return value
 
 func _set_control_value(value: Variant):
-	# if control_value_property != "": control.set(control_value_property, value); return
 
 	# Handle specific control types
 	if control is ItemList: _set_item_list_value(value); return

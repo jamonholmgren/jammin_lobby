@@ -359,6 +359,7 @@ func update_players_from_host(updated_players: Dictionary):
 	
 	# Process the updated (maybe) players
 	for pid in updated_players:
+		pid = int(pid)
 		var new_player: Dictionary = updated_players[pid]
 		active_players.append(pid)
 
@@ -376,6 +377,7 @@ func update_players_from_host(updated_players: Dictionary):
 		if is_new:
 			players[pid] = {}
 			players[pid].merge(new_player, true)
+			players[pid].id = pid
 			if is_me: i_joined_lobby.emit(players[pid])
 			else: player_joined_lobby.emit(players[pid])
 		elif is_updated:
