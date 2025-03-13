@@ -77,6 +77,7 @@ func test_restore_options(loc: String):
 	var restored = FileUtils.load_json(loc)
 	if not FileUtils.is_eq(data, restored):
 		# Something went wrong; restore from a backup if it exists
+		pe("options mismatch! ", loc, data, restored)
 		var bkp = loc + ".backup.json"
 		FileUtils.copy_file(bkp, loc)
 		return ERR_INVALID_DATA

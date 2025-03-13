@@ -566,7 +566,7 @@ func player_id_valid(pid: int) -> bool:
 
 # Can't type the return type since it can return null
 func find_by_pid(pid: int): # -> Dictionary | null
-	if pid == 0: return me
+	if pid == 0 and offline(): return me
 	return players.get(pid, null)
 
 func host_remove_by_pid(pid: int):
