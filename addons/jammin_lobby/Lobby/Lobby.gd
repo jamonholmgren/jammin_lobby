@@ -417,7 +417,7 @@ func find_lobbies(callback: Callable = func(_lobbies: Dictionary, _error: String
 	discovery_server.set_broadcast_enabled(true)
 	discovery_server.set_dest_address("255.255.255.255", config.broadcast_port)
 	discovery_server.put_packet(refresh_packet().to_utf8_buffer())
-	# lm("Sent refresh packet")
+	lm("Sent refresh packet")
 
 	await wait(0.2 * (retry + 1))
 	
