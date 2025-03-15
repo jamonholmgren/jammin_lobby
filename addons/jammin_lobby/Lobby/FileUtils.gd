@@ -13,10 +13,12 @@ static func is_eq(a: Dictionary, b: Dictionary) -> bool:
 	b_keys.sort()
 	if a_keys.size() != b_keys.size(): return false
 	for k in a_keys:
-		if a[k] is Dictionary:
+		var a_val = a.get(k)
+		var b_val = b.get(k)
+		if a_val is Dictionary and b_val is Dictionary:
 			# Check down the tree
-			if not is_eq(a[k], b[k]): return false
-		elif a[k] != b[k]:
+			if not is_eq(a_val, b_val): return false
+		elif a_val != b_val:
 			return false
 	return true
 

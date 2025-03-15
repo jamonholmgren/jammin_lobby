@@ -611,6 +611,7 @@ func i_am_host() -> bool: return status() == Status.Hosting
 func is_client() -> bool: return status() == Status.Connected
 func is_authority(node: Node) -> bool: return online() and node.is_multiplayer_authority()
 func is_me(p: Dictionary) -> bool: return p and me.id == p.id
+func is_host(p: Dictionary) -> bool: return p and p.host
 
 func sender_is_host() -> bool: return sender_id() == host_id()
 func sender_is_me() -> bool: return sender_id() == id()
