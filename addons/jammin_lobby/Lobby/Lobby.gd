@@ -194,7 +194,6 @@ func configure(settings: Dictionary):
 	if settings.has("response_port"): config.response_port = settings.response_port
 	if settings.has("max_players"): config.max_players = settings.max_players
 	if settings.has("connection_timeout"): config.connection_timeout = settings.connection_timeout
-	if settings.has("player_script"): config.player_script = settings.player_script
 	if settings.has("player_scene"): config.player_scene = settings.player_scene
 	if settings.has("autosave"): config.autosave = settings.autosave
 	if settings.has("save_slot"): save_slot = settings.save_slot
@@ -738,10 +737,6 @@ var max_players:
 var connection_timeout: int:
 	get: return config.connection_timeout
 	set(v): config.connection_timeout = v
-
-var player_script: String:
-	get: return config.player_script
-	set(v): config.player_script = v
 
 var player_scene: String:
 	get: return config.player_scene
