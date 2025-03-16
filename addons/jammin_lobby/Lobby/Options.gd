@@ -25,7 +25,7 @@ func _set(k: StringName, v: Variant):
 	elif str(old_v) == str(v): return true
 	data[k] = v
 	autosave()
-	updated.emit(k, v)
+	updated.emit.call_deferred(k, v)
 	return true
 
 # Convenience method for getting options with a default value
@@ -85,7 +85,7 @@ func test_restore_options(loc: String):
 
 func problem(message: String) -> JamminOptions:
 	push_error(message)
-	problem_detected.emit(message)
+	problem_detected.emit.call_deferred(message)
 	return self
 
 func noop_callback(_n: String, _v: Variant): pass

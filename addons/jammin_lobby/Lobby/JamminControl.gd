@@ -97,7 +97,7 @@ func _save_value_to_storage(key: String, value: Variant):
 func _on_control_changed(arg1 = null, arg2 = null, arg3 = null):
 	# Handle different signal patterns
 	var value = _get_control_value()
-	value_changed.emit(value)
+	value_changed.emit.call_deferred(value)
 	_save_value_to_storage(option_name, value)
 
 func _on_option_changed(key: String, value: Variant):
@@ -116,7 +116,7 @@ func set_control_value(value: Variant):
 	if _get_control_value() == value: return
 	
 	_set_control_value(value)
-	value_changed.emit(value)
+	value_changed.emit.call_deferred(value)
 
 func _get_control_value() -> Variant:
 	assert(control != null, "Control is null")

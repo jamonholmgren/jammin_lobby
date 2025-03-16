@@ -115,7 +115,7 @@ func restore() -> void:
 			me[key] = restored_data[key]
 		# Reset some values that shouldn't be persisted
 		me.merge({ "ready": false, "in_lobby": false, "host": false }, true)
-		i_restored.emit(me)
+		i_restored.emit.call_deferred(me)
 
 func _process(_delta) -> void:
 	if not discovery_server.is_bound(): set_process(false); return
@@ -236,8 +236,8 @@ func start_server() -> void:
 	
 	# Manually signal because Godot doesn't provide signals for server start
 	update_me({ "host": true, "in_lobby": true })
-	hosting_started.emit()
-	i_connecting_to_lobby.emit()
+	hosting_started.emit.call_deferred()
+	i_connecting_to_lobby.emit.call_deferred()
 	sync_me_with_host()
 
 func update_me(changes: Dictionary):
@@ -248,7 +248,7 @@ func update_me(changes: Dictionary):
 	Options.set("player-" + str(save_slot), me)
 	# have to call manually because `me` is the same object, often, and won't get detected as changed
 	Options.autosave()
-	i_updated.emit(me)
+	i_updated.emit.call_deferred(me)
 	sync_me_with_host()
 
 func sync_me_with_host():
@@ -279,14 +279,14 @@ func start_server_failed(error: int) -> void:
 	if error == ERR_CANT_CREATE: msg = "Is port %s already in use?" % config.game_port
 	push_error("Error starting server (" + str(error) + "): " + msg)
 	update_me({ "host": false, "in_lobby": false })
-	hosting_failed.emit(msg)
+	hosting_failed.emit.call_deferred(msg)
 
 func stop_server(message: String):
 	if not i_am_host(): return
 	close_game_peer()
 	update_me({ "host": false, "in_lobby": false })
-	i_left_lobby.emit(message)
-	hosting_stopped.emit(message)
+	i_left_lobby.emit.call_deferred(message)
+	hosting_stopped.emit.call_deferred(message)
 
 func _server_disconnect_all_peers(reason: String = ""):
 	if not i_am_host(): return
@@ -313,17 +313,17 @@ func start_discovery() -> void:
 	var result = discovery_server.bind(config.broadcast_port)
 	if result != OK:
 		lm("Lobby: Discovery server failed to bind: ", result, " on port ", config.broadcast_port)
-		discovery_server_failed.emit(result)
+		discovery_server_failed.emit.call_deferred(result)
 		return
 	set_process(true) # start listening for requests
-	discovery_server_started.emit()
+	discovery_server_started.emit.call_deferred()
 
 func stop_discovery():
 	lm("stop_discovery")
 	if not discovery_server.is_bound(): return
 	set_process(false)
 	discovery_server.close()
-	discovery_server_stopped.emit()
+	discovery_server_stopped.emit.call_deferred()
 
 func check_for_clients_discovery() -> void:
 	if not discovery_server.is_bound(): return pe("Lobby: Discovery server not bound!")
@@ -378,20 +378,20 @@ func update_players_from_host(updated_players: Dictionary):
 			players[pid] = {}
 			players[pid].merge(new_player, true)
 			players[pid].id = pid
-			if is_me: i_joined_lobby.emit(players[pid])
-			else: player_joined_lobby.emit(players[pid])
+			if is_me: i_joined_lobby.emit.call_deferred(players[pid])
+			else: player_joined_lobby.emit.call_deferred(players[pid])
 		elif is_updated:
 			players[pid].merge(new_player, true)
-			if is_me: i_updated.emit(me)
-			else: player_updated.emit(new_player)
+			if is_me: i_updated.emit.call_deferred(me)
+			else: player_updated.emit.call_deferred(new_player)
 
 	# Remove players that are no longer in the lobby
 	for pid in players.keys():
 		if not active_players.has(pid):
-			if is_me: i_left_lobby.emit("Lobby player left")
+			if is_me: i_left_lobby.emit.call_deferred("Lobby player left")
 			var p = players[pid]
 			players.erase(pid)
-			player_left_lobby.emit(p)
+			player_left_lobby.emit.call_deferred(p)
 
 func refresh_packet() -> String:
 	return "LOOKING-FOR-LOBBY"
@@ -411,7 +411,7 @@ func find_lobbies(callback: Callable = func(_lobbies: Dictionary, _error: String
 		refreshing = false
 		var error_msg = "Error binding client discovery broadcast: " + str(error)
 		callback.call({}, error_msg)
-		lobbies_refreshed.emit({}, error_msg)
+		lobbies_refreshed.emit.call_deferred({}, error_msg)
 		return
 	
 	discovery_server.set_broadcast_enabled(true)
@@ -446,7 +446,7 @@ func find_lobbies(callback: Callable = func(_lobbies: Dictionary, _error: String
 		find_lobbies(callback, retry + 1)
 	else:
 		callback.call(found_lobbies, "")
-		lobbies_refreshed.emit(found_lobbies, "")
+		lobbies_refreshed.emit.call_deferred(found_lobbies, "")
 		lm("found_lobbies: ", found_lobbies)
 
 # Join a server by IP address and port
@@ -472,7 +472,7 @@ func join(lobby: Dictionary) -> void:
 func join_error(error: int) -> void:
 	lm("join_error: ", error)
 	close_game_peer()
-	i_failed_to_join_lobby.emit("Failed to connect to lobby. Error code " + str(error))	
+	i_failed_to_join_lobby.emit.call_deferred("Failed to connect to lobby. Error code " + str(error))	
 
 # Leave the current server
 func leave(message: String = ""):
@@ -493,7 +493,7 @@ func send_game_event(command: String, data: Dictionary = {}) -> void:
 # It's kind of an all-purpose communication signal.
 @rpc("authority", "reliable", "call_local")
 func _send_game_event(command: String, data: Dictionary = {}) -> void:
-	game_event.emit(command, data)
+	game_event.emit.call_deferred(command, data)
 
 # Chat methods *******************************************************************
 
@@ -517,12 +517,12 @@ func host_send_chat(message: String):
 	chat_messages.sort_custom(func(a, b): return a.get("ts") < b.get("ts"))
 
 	broadcast_chat_messages()
-	chat_messages_updated.emit() # for us
+	chat_messages_updated.emit.call_deferred() # for us
 
 # System messages are local only, and aren't broadcast to other clients
 func send_system_chat(message: String):
 	add_chat(message, 0, "system")
-	chat_messages_updated.emit()
+	chat_messages_updated.emit.call_deferred()
 	return OK
 
 func add_chat(message: String, sender_id: int, channel: String = "lobby"):
@@ -547,7 +547,7 @@ func update_chat_messages(messages: Array[Dictionary]):
 		var existing = find_by_key(chat_messages, "id", msg["id"])
 		if existing: existing.merge(msg, true)
 		else: chat_messages.push_back(msg)
-	chat_messages_updated.emit()
+	chat_messages_updated.emit.call_deferred()
 
 # Player methods *******************************************************************
 
@@ -637,7 +637,7 @@ func pong_client() -> void:
 	var new_ping = (Time.get_ticks_usec() - ping_start) / 2
 	update_me({ "ping": new_ping })
 	ping_start = 0
-	ping_updated.emit(me.ping)
+	ping_updated.emit.call_deferred(me.ping)
 
 # Signal Handlers ***************************************************************
 
@@ -645,23 +645,23 @@ func pong_client() -> void:
 # my player data over there so it'll let me in.
 func _on_connection_succeeded():
 	lm("_on_connection_succeeded")
-	i_connecting_to_lobby.emit()
+	i_connecting_to_lobby.emit.call_deferred()
 	sync_me_with_host()
 
 # We tried to join a lobby, but it failed for some reason.
 # Only called on clients.
 func _on_connection_failed(reason: String = ""):
 	lm("_on_connection_failed: ", reason)
-	i_failed_to_join_lobby.emit(reason)
+	i_failed_to_join_lobby.emit.call_deferred(reason)
 
 # We closed the connection or the server disconnected from us.
 func _on_connection_ended(reason: String = ""):
 	lm("_on_connection_ended: ", reason)
 	close_game_peer()
-	i_left_lobby.emit(reason)
+	i_left_lobby.emit.call_deferred(reason)
 	
-func _on_server_started(): hosting_started.emit()
-func _on_server_failed(message: String): hosting_failed.emit(message)
+func _on_server_started(): hosting_started.emit.call_deferred()
+func _on_server_failed(message: String): hosting_failed.emit.call_deferred(message)
 
 # This is called when a new remote peer connects to my multiplayer peer
 # but only if I'm the server or they're the server
@@ -670,7 +670,7 @@ func _on_peer_connected(pid: int):
 	if pid == host_id():
 		# I joined a server
 		lm(" - _on_peer_connected: ", pid)
-		i_connecting_to_lobby.emit()
+		i_connecting_to_lobby.emit.call_deferred()
 		# This will update me as well as send my data to the host
 		update_me({ "in_lobby": true })
 	else:
@@ -686,7 +686,7 @@ func _on_peer_disconnected(pid: int, reason: String = ""):
 	# The server disconnected from us
 	if pid == host_id():
 		close_game_peer()
-		i_left_lobby.emit("Host disconnected")
+		i_left_lobby.emit.call_deferred("Host disconnected")
 		return
 
 	# OK, if we're the host, a client has disconnected from us
@@ -700,7 +700,7 @@ func _on_peer_disconnected(pid: int, reason: String = ""):
 func _on_any_peer_connected(pid: int):
 	# - We mute this signal for anyone except the server
 	if not i_am_host(): return
-	player_connecting_to_lobby.emit(pid)
+	player_connecting_to_lobby.emit.call_deferred(pid)
 
 # - This fires on all clients when any peer disconnects, with the disconnected peer's ID
 # - Way too noisy, but we do use it to know when a client is disconnecting from the server
