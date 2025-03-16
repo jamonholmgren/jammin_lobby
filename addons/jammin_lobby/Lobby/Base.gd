@@ -6,6 +6,21 @@ static var debug := OS.is_debug_build()
 func wait(time: float):
 	return Lobby.get_tree().create_timer(time).timeout
 
+func wait_every(time: float, fn: Callable, total: float = -1):
+	var timer = Timer.new()
+	add_child(timer)
+	timer.wait_time = time
+	timer.one_shot = false
+	timer.timeout.connect(fn)
+	timer.start()
+
+	if total > 0:
+		for _i in range(total): await timer.timeout
+		timer.stop()
+		timer.queue_free()
+		
+	return timer.timeout
+
 func debounce_single_timer(c: Callable):
 	for t in get_children(): if t is Timer and t.is_connected("timeout", c): t.start(); return t
 	return null
