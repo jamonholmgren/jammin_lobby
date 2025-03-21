@@ -125,7 +125,15 @@ func _get_control_value() -> Variant:
 
 func _get_item_list_value() -> String:
 	var selected_items: PackedInt32Array = control.get_selected_items()
-	if selected_items.size() == 0: return default_value
+	if selected_items.size() == 0:
+		# Select the default value, if possible
+		if default_value != "":
+			_set_item_list_value(default_value)
+			return default_value
+		else:
+			# Simply select the first item
+			control.select(0)
+			return control.get_item_text(0)
 	var item_index = selected_items[0]
 	var item_text = control.get_item_text(item_index)
 	return clean_val(item_text)
@@ -133,8 +141,6 @@ func _get_item_list_value() -> String:
 func _set_item_list_value(value: String):
 	value = clean_val(value)
 	print(name + " set_item_list_value: ", value)
-	var item_list_value = _get_item_list_value()
-	if item_list_value == value: return
 	for i in control.get_item_count():
 		var item_text = clean_val(control.get_item_text(i))
 		if item_text == value:
