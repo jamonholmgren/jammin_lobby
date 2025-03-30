@@ -100,6 +100,7 @@ func _ready() -> void:
 	debug = true
 	me = {}
 	me.merge(DEFAULT_PLAYER_DATA, true)
+	me.id = int(me.id)
 
 	setup_multiplayer()
 	setup_request()
@@ -237,7 +238,7 @@ func start_server() -> void:
 	update_me({ "host": true, "in_lobby": true })
 	hosting_started.emit.call_deferred()
 	i_connecting_to_lobby.emit.call_deferred()
-	sync_me_with_host()
+	sync_me_with_host.call_deferred()
 
 func update_me(changes: Dictionary):
 	# Has anything changed?
@@ -248,11 +249,11 @@ func update_me(changes: Dictionary):
 	# have to call manually because `me` is the same object, often, and won't get detected as changed
 	Options.autosave()
 	i_updated.emit.call_deferred(me)
-	sync_me_with_host()
+	sync_me_with_host.call_deferred()
 
 func sync_me_with_host():
 	if not online(): return
-	lm("sync_me_with_host", online(), multiplayer.get_peers())
+	# lm("sync_me_with_host", online(), multiplayer.get_peers())
 	update_player_data.rpc_id(host_id(), me)
 
 @rpc("any_peer", "reliable", "call_local")
@@ -569,6 +570,7 @@ func find_by_pid(pid: int): # -> Dictionary | null
 	return players.get(pid, null)
 
 func host_remove_by_pid(pid: int):
+	if not online(): return
 	if not i_am_host(): return
 	if pid in _host_players:
 		_host_players.erase(pid)
@@ -645,7 +647,7 @@ func pong_client() -> void:
 func _on_connection_succeeded():
 	lm("_on_connection_succeeded")
 	i_connecting_to_lobby.emit.call_deferred()
-	sync_me_with_host()
+	sync_me_with_host.call_deferred()
 
 # We tried to join a lobby, but it failed for some reason.
 # Only called on clients.
