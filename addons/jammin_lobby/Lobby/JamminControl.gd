@@ -120,22 +120,29 @@ func set_control_value(value: Variant):
 
 func _get_control_value() -> Variant:
 	assert(control != null, "Control is null")
-	if control is ItemList: return _get_item_list_value()
+	if control is ItemList: return _convert_value_type(_get_item_list_value())
 	return _convert_value_type(control.get(control_value_property()))
 
 func _get_item_list_value() -> String:
 	var selected_items: PackedInt32Array = control.get_selected_items()
-	if selected_items.size() == 0: return default_value
+	if selected_items.size() == 0:
+		# Select the default value, if possible
+		if default_value != "":
+			_set_item_list_value(default_value)
+			return default_value
+		else:
+			# Simply select the first item
+			control.select(0)
+			return control.get_item_text(0)
 	var item_index = selected_items[0]
 	var item_text = control.get_item_text(item_index)
-	return item_text.split(" (")[0]
+	return clean_val(item_text)
 
 func _set_item_list_value(value: String):
-	value = value.split(" (")[0] # Remove any parenthetical text
+	value = clean_val(value)
 	print(name + " set_item_list_value: ", value)
-	if _get_item_list_value() == value: return
 	for i in control.get_item_count():
-		var item_text = control.get_item_text(i).split(" (")[0]
+		var item_text = clean_val(control.get_item_text(i))
 		if item_text == value:
 			control.select(i)
 			break
@@ -147,14 +154,13 @@ func _convert_value_type(value: Variant) -> Variant:
 		DataTypes.INT: return int(value)
 		DataTypes.FLOAT: return float(value)
 		DataTypes.BOOL: return !!(value)
-		DataTypes.STRING: return str(value)
+		DataTypes.STRING: return clean_val(str(value))
 		DataTypes.COLOR:
 			if value is String: return Color(value)
 			return value
 	return value
 
 func _set_control_value(value: Variant):
-
 	# Handle specific control types
 	if control is ItemList: _set_item_list_value(value); return
 	if control is CheckBox: control.button_pressed = bool(value); return
@@ -168,6 +174,9 @@ func _set_control_value(value: Variant):
 	if control is ColorPickerButton: control.color = value; return
 
 	push_error("Unsupported control type: ", control.get_class())
+
+func clean_val(value: String) -> String:
+	return value.split(" (")[0]
 
 # This sets up a callback and then also calls it with the
 # current value of the control, to do initial setup.

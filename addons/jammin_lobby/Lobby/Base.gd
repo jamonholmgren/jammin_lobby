@@ -110,6 +110,6 @@ func every(frames: int, fn: Callable, offset: int = 0, debug_label: StringName =
 			fn.call_deferred()
 
 func exec_every(fn: Callable, debug_label: StringName = &""):
-	# Perf.start(debug_label)
+	Perf.start(debug_label)
 	fn.call()
-	# Perf.stop(debug_label)
+	Perf.stop(debug_label)
